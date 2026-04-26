@@ -49,6 +49,8 @@ bin/
 *.ipr
 *.db
 out/
+build/
+.gradle/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
