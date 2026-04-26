@@ -5,6 +5,8 @@ import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.FULL
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -438,6 +440,66 @@ class CustomerTest {
 
     assertThatThrownBy(() -> customer.changePhone(null))
         .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when archiving an already archived customer")
+  void shouldThrowExceptionWhenArchivingAlreadyArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(customer::archive)
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing name of archived customer")
+  void shouldThrowExceptionWhenChangingNameOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(() -> customer.changeName("Maria Silva"))
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing email of archived customer")
+  void shouldThrowExceptionWhenChangingEmailOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(() -> customer.changeEmail("maria.silva@example.com"))
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing phone of archived customer")
+  void shouldThrowExceptionWhenChangingPhoneOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(() -> customer.changePhone("11888888888"))
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when enabling promotion notifications of archived customer")
+  void shouldThrowExceptionWhenEnablingPromotionNotificationsOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(customer::enablePromotionNotifications)
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when disabling promotion notifications of archived customer")
+  void shouldThrowExceptionWhenDisablingPromotionNotificationsOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+
+    assertThatThrownBy(customer::disablePromotionNotifications)
+        .isInstanceOf(CustomerArchivedException.class);
   }
 
   @Test

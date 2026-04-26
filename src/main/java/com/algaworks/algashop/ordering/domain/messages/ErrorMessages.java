@@ -7,4 +7,5 @@ public class ErrorMessages {
   public static final String PHONE_CANNOT_BE_BLANK = "Phone cannot be blank";
   public static final String EMAIL_IS_INVALID = "Email is invalid";
   public static final String EMAIL_CANNOT_BE_BLANK = "Email cannot be blank";
+  public static final String CUSTOMER_ARCHIVED = "Customer is archived";
 }

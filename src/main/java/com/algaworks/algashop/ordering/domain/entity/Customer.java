@@ -5,6 +5,7 @@ import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.PHON
 import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.BIRTHDATE_MUST_IN_PAST;
 import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.FULLNAME_IS_BLANK;
 
+import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.validator.EmailFormatValidator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -51,6 +52,7 @@ public class Customer {
     this.setDocument(document);
     this.setPromotionNotificationsAllowed(promotionNotificationsAllowed);
     this.setRegisteredAt(registeredAt);
+    this.setArchived(false);
   }
 
   public void addLoyaltyPoints(Integer points) {
@@ -58,6 +60,7 @@ public class Customer {
   }
 
   public void archive() {
+    customerCanBeModified();
     this.setArchived(true);
     this.setArchivedAt(OffsetDateTime.now());
     this.setFullName(this.fullName() + " (Archived)");
@@ -69,23 +72,34 @@ public class Customer {
     this.setRegisteredAt(null);
   }
 
+  private void customerCanBeModified() {
+    if (this.archived()) {
+      throw new CustomerArchivedException();
+    }
+  }
+
   public void enablePromotionNotifications() {
+    customerCanBeModified();
     this.setPromotionNotificationsAllowed(true);
   }
 
   public void disablePromotionNotifications() {
+    customerCanBeModified();
     this.setPromotionNotificationsAllowed(false);
   }
 
   public void changeName(String fullName) {
+    customerCanBeModified();
     this.setFullName(fullName);
   }
 
   public void changeEmail(String email) {
+    customerCanBeModified();
     this.setEmail(email);
   }
 
   public void changePhone(String phone) {
+    customerCanBeModified();
     this.setPhone(phone);
   }
 
