@@ -8,4 +8,7 @@ public class ErrorMessages {
   public static final String EMAIL_IS_INVALID = "Email is invalid";
   public static final String EMAIL_CANNOT_BE_BLANK = "Email cannot be blank";
   public static final String CUSTOMER_ARCHIVED = "Customer is archived";
+  public static final String LOYALTY_POINTS_CANNOT_BE_NEGATIVE = "Loyalty points cannot be negative";
+  public static final String LOYALTY_POINTS_CANNOT_BE_NEGATIVE_OR_ZERO = "Loyalty points cannot be negative or zero";
+  public static final String FULL_NAME_CANNOT_BE_BLANK = "Full name cannot be blank";
 }
