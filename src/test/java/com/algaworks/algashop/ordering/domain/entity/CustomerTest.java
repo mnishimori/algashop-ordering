@@ -8,9 +8,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
 
+import com.algaworks.algashop.ordering.domain.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.valueobject.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.LoyaltyPoints;
+import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -29,32 +31,32 @@ class CustomerTest {
   private static final OffsetDateTime REGISTERED_AT = OffsetDateTime.parse("2024-01-15T10:30:00+03:00");
 
   private Customer createCustomer() {
-    return createCustomerWithId(new CustomerId());
+    return createCustomerWithId();
   }
 
-  private Customer createCustomerWithId(CustomerId customerId) {
-    return new Customer(
-        customerId,
-        new FullName(FIRST_NAME, LAST_NAME),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        false,
-        REGISTERED_AT,
-        null,
-        LoyaltyPoints.ZERO
+  private Customer createCustomerWithId() {
+    var address = createCustomerAddress();
+    return Customer.brandnew(
+        new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, true, address
     );
+  }
+
+  private Address createCustomerAddress() {
+    return Address.builder()
+        .street("Bourbon Street")
+        .number("1234")
+        .neighborhood("North Valley")
+        .city("New York")
+        .state("New York")
+        .zipCode(new ZipCode("12345-678"))
+        .build();
   }
 
   @Test
   @DisplayName("Should create customer with full constructor")
   void shouldCreateCustomerWithFullConstructor() {
-    var customerId = new CustomerId(CUSTOMER_ID);
-    var customer = createCustomerWithId(customerId);
+    var customer = createCustomerWithId();
 
-    assertThat(customer.id()).isEqualTo(customerId);
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
     assertThat(customer.email()).isEqualTo(EMAIL);
@@ -62,7 +64,6 @@ class CustomerTest {
     assertThat(customer.document()).isEqualTo(DOCUMENT);
     assertThat(customer.promotionNotificationsAllowed()).isTrue();
     assertThat(customer.archived()).isFalse();
-    assertThat(customer.registeredAt()).isEqualTo(REGISTERED_AT);
     assertThat(customer.archivedAt()).isNull();
     assertThat(customer.loyaltyPoints()).isEqualTo(LoyaltyPoints.ZERO);
   }
@@ -70,42 +71,26 @@ class CustomerTest {
   @Test
   @DisplayName("Should create customer with simplified constructor")
   void shouldCreateCustomerWithSimplifiedConstructor() {
+    var address = createCustomerAddress();
     var customerId = new CustomerId(CUSTOMER_ID);
-    var customer = new Customer(
-        customerId,
-        new FullName(FIRST_NAME, LAST_NAME),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    );
+    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
 
-    assertThat(customer.id()).isEqualTo(customerId);
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
     assertThat(customer.email()).isEqualTo(EMAIL);
     assertThat(customer.phone()).isEqualTo(PHONE);
     assertThat(customer.document()).isEqualTo(DOCUMENT);
-    assertThat(customer.promotionNotificationsAllowed()).isTrue();
-    assertThat(customer.registeredAt()).isEqualTo(REGISTERED_AT);
+    assertThat(customer.promotionNotificationsAllowed()).isFalse();
     assertThat(customer.loyaltyPoints()).isEqualTo(LoyaltyPoints.ZERO);
   }
 
   @Test
   @DisplayName("Should create customer with null birth date")
   void shouldCreateCustomerWithNullBirthDate() {
-    var customer = new Customer(
-        new CustomerId(),
-        new FullName(FIRST_NAME, LAST_NAME),
-        null,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    );
+    var address = createCustomerAddress();
+    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), null, EMAIL, PHONE, DOCUMENT, false,
+        address);
 
     assertThat(customer.birthDate()).isNull();
   }
@@ -113,140 +98,85 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when full name is null")
   void shouldThrowExceptionWhenFullNameIsNull() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        (FullName) null,
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(NullPointerException.class);
+    var address = createCustomerAddress();
+    assertThatThrownBy(() -> Customer.brandnew(null, BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when full name is blank")
   void shouldThrowExceptionWhenFullNameIsBlank() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName(" ", " "),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(() -> Customer.brandnew(new FullName(" ", " "), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage(FULL_NAME_CANNOT_BE_BLANK);
   }
 
   @Test
   @DisplayName("Should throw exception when email is null")
   void shouldThrowExceptionWhenEmailIsNull() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        null,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(NullPointerException.class);
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, null, PHONE, DOCUMENT, false,
+            address)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when email is blank")
   void shouldThrowExceptionWhenEmailIsBlank() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        "   ",
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, " ", PHONE, DOCUMENT,
+            false,
+            address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email cannot be blank");
   }
 
   @Test
   @DisplayName("Should throw exception when email is invalid")
   void shouldThrowExceptionWhenEmailIsInvalid() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        "invalid-email",
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, "invalid-email", PHONE, DOCUMENT, false,
+            address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email is invalid");
   }
 
   @Test
   @DisplayName("Should throw exception when phone is null")
   void shouldThrowExceptionWhenPhoneIsNull() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        null,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(NullPointerException.class);
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, null, DOCUMENT, false,
+            address)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when phone is blank")
   void shouldThrowExceptionWhenPhoneIsBlank() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        "   ",
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, " ", DOCUMENT, false,
+            address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Phone cannot be blank");
   }
 
   @Test
   @DisplayName("Should throw exception when document is null")
   void shouldThrowExceptionWhenDocumentIsNull() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        null,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(NullPointerException.class);
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, null, false,
+            address)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when document is blank")
   void shouldThrowExceptionWhenDocumentIsBlank() {
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        "   ",
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, " ", false,
+            address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Document cannot be blank");
   }
 
@@ -254,17 +184,10 @@ class CustomerTest {
   @DisplayName("Should throw exception when birth date is in the future")
   void shouldThrowExceptionWhenBirthDateIsInTheFuture() {
     LocalDate futureDate = LocalDate.now().plusDays(1);
-
-    assertThatThrownBy(() -> new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        futureDate,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    )).isInstanceOf(IllegalArgumentException.class)
+    var address = createCustomerAddress();
+    assertThatThrownBy(
+        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), futureDate, EMAIL, PHONE, DOCUMENT, false,
+            address)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage(BIRTHDATE_MUST_IN_PAST);
   }
 
@@ -293,19 +216,10 @@ class CustomerTest {
   @Test
   @DisplayName("Should add loyalty points to existing points")
   void shouldAddLoyaltyPointsToExistingPoints() {
-    Customer customer = new Customer(
-        new CustomerId(),
-        new FullName(FIRST_NAME, LAST_NAME),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        false,
-        REGISTERED_AT,
-        null,
-        new LoyaltyPoints(50)
-    );
+    var customerId = new CustomerId();
+    var address = createCustomerAddress();
+    Customer customer = Customer.existed(customerId, new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT,
+        false, false, null, REGISTERED_AT,  new LoyaltyPoints(50), address);
 
     customer.addLoyaltyPoints(25);
 
@@ -315,7 +229,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding null loyalty points")
   void shouldThrowExceptionWhenAddingNullLoyaltyPoints() {
-    Customer customer = createCustomer();
+    var customer = createCustomer();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(null))
         .isInstanceOf(NullPointerException.class);
@@ -324,7 +238,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding zero loyalty points")
   void shouldThrowExceptionWhenAddingZeroLoyaltyPoints() {
-    Customer customer = createCustomer();
+    var customer = createCustomer();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(0))
         .isInstanceOf(IllegalArgumentException.class)
@@ -334,7 +248,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding negative loyalty points")
   void shouldThrowExceptionWhenAddingNegativeLoyaltyPoints() {
-    Customer customer = createCustomer();
+    var customer = createCustomer();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(-10))
         .isInstanceOf(IllegalArgumentException.class)
@@ -344,7 +258,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding loyalty points to archived customer")
   void shouldThrowExceptionWhenAddingLoyaltyPointsToArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = createCustomer();
     customer.archive();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(100))
@@ -354,19 +268,9 @@ class CustomerTest {
   @Test
   @DisplayName("Should archive customer with all required changes")
   void shouldArchiveCustomerWithAllRequiredChanges() {
-    Customer customer = new Customer(
-        new CustomerId(),
-        new FullName(FIRST_NAME, LAST_NAME),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        false,
-        REGISTERED_AT,
-        null,
-        new LoyaltyPoints(100)
-    );
+    var address = createCustomerAddress();
+    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
 
     customer.archive();
 
@@ -383,16 +287,9 @@ class CustomerTest {
   @Test
   @DisplayName("Should enable promotion notifications")
   void shouldEnablePromotionNotifications() {
-    Customer customer = new Customer(
-        new CustomerId(),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        false,
-        REGISTERED_AT
-    );
+    var address = createCustomerAddress();
+    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
 
     customer.enablePromotionNotifications();
@@ -569,30 +466,12 @@ class CustomerTest {
   }
 
   @Test
-  @DisplayName("Should be equal when same id")
-  void shouldBeEqualWhenSameId() {
-    var sharedId = new CustomerId(CUSTOMER_ID);
-    Customer customer1 = createCustomerWithId(sharedId);
-    Customer customer2 = createCustomerWithId(sharedId);
-
-    assertThat(customer1).isEqualTo(customer2);
-    assertThat(customer1.hashCode()).isEqualTo(customer2.hashCode());
-  }
-
-  @Test
   @DisplayName("Should not be equal when different id")
   void shouldNotBeEqualWhenDifferentId() {
     Customer customer1 = createCustomer();
-    Customer customer2 = new Customer(
-        new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")),
-        new FullName("JOAO", "SILVA"),
-        BIRTH_DATE,
-        EMAIL,
-        PHONE,
-        DOCUMENT,
-        true,
-        REGISTERED_AT
-    );
+    var address = createCustomerAddress();
+    Customer customer2 = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
 
     assertThat(customer1).isNotEqualTo(customer2);
   }
@@ -612,4 +491,138 @@ class CustomerTest {
 
     assertThat(customer).isNotEqualTo("not a customer");
   }
+
+  @Test
+  @DisplayName("Should change address")
+  void shouldChangeAddress() {
+    Customer customer = createCustomer();
+    var newAddress = Address.builder()
+        .street("New Street")
+        .number("5678")
+        .neighborhood("South Valley")
+        .city("Los Angeles")
+        .state("California")
+        .zipCode(new ZipCode("98765-432"))
+        .build();
+
+    customer.changeAddress(newAddress);
+
+    assertThat(customer.address()).isEqualTo(newAddress);
+    assertThat(customer.address().street()).isEqualTo("New Street");
+    assertThat(customer.address().number()).isEqualTo("5678");
+    assertThat(customer.address().city()).isEqualTo("Los Angeles");
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing address to null")
+  void shouldThrowExceptionWhenChangingAddressToNull() {
+    Customer customer = createCustomer();
+
+    assertThatThrownBy(() -> customer.changeAddress(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing address of archived customer")
+  void shouldThrowExceptionWhenChangingAddressOfArchivedCustomer() {
+    Customer customer = createCustomer();
+    customer.archive();
+    var newAddress = Address.builder()
+        .street("New Street")
+        .number("5678")
+        .neighborhood("South Valley")
+        .city("Los Angeles")
+        .state("California")
+        .zipCode(new ZipCode("98765-432"))
+        .build();
+
+    assertThatThrownBy(() -> customer.changeAddress(newAddress))
+        .isInstanceOf(CustomerArchivedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when address is null in constructor")
+  void shouldThrowExceptionWhenAddressIsNullInConstructor() {
+    assertThatThrownBy(() -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        null)).isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should return address")
+  void shouldReturnAddress() {
+    Customer customer = createCustomer();
+
+    Address address = customer.address();
+
+    assertThat(address).isNotNull();
+    assertThat(address.street()).isEqualTo("Bourbon Street");
+    assertThat(address.number()).isEqualTo("1234");
+    assertThat(address.neighborhood()).isEqualTo("North Valley");
+    assertThat(address.city()).isEqualTo("New York");
+    assertThat(address.state()).isEqualTo("New York");
+    assertThat(address.zipCode().value()).isEqualTo("12345-678");
+  }
+
+  @Test
+  @DisplayName("Should return document")
+  void shouldReturnDocument() {
+    Customer customer = createCustomer();
+
+    assertThat(customer.document()).isEqualTo(DOCUMENT);
+  }
+
+  @Test
+  @DisplayName("Should return birth date")
+  void shouldReturnBirthDate() {
+    Customer customer = createCustomer();
+
+    assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
+  }
+
+  @Test
+  @DisplayName("Should return archived status")
+  void shouldReturnArchivedStatus() {
+    Customer customer = createCustomer();
+
+    assertThat(customer.archived()).isFalse();
+  }
+
+  @Test
+  @DisplayName("Should return archived at")
+  void shouldReturnArchivedAt() {
+    var address = createCustomerAddress();
+    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
+
+    assertThat(customer.archivedAt()).isNull();
+
+    customer.archive();
+
+    assertThat(customer.archivedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should anonymize address when archiving customer")
+  void shouldAnonymizeAddressWhenArchivingCustomer() {
+    var address = createCustomerAddress();
+    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
+        address);
+
+    customer.archive();
+
+    assertThat(customer.address().number()).isEqualTo("Anounymous");
+    assertThat(customer.address().complement()).isEqualTo("Anounymous");
+  }
+
+  @Test
+  @DisplayName("Should return loyalty points")
+  void shouldReturnLoyaltyPoints() {
+    var customerId = new CustomerId(CUSTOMER_ID);
+    var address = createCustomerAddress();
+    Customer customer = Customer.existed(customerId, new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT,
+        false, false, null, REGISTERED_AT,  new LoyaltyPoints(150), address);
+
+    assertThat(customer.loyaltyPoints().value()).isEqualTo(150);
+  }
+
 }

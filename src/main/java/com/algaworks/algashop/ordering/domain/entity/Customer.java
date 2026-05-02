@@ -6,9 +6,11 @@ import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.PHON
 
 import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.validator.EmailFormatValidator;
+import com.algaworks.algashop.ordering.domain.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.valueobject.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.LoyaltyPoints;
+import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -27,27 +29,26 @@ public class Customer {
   private OffsetDateTime registeredAt;
   private OffsetDateTime archivedAt;
   private LoyaltyPoints loyaltyPoints;
+  private Address address;
 
-  public Customer(CustomerId customerId, FullName fullName, LocalDate birthDate, String email, String phone,
-      String document,
-      Boolean promotionNotificationsAllowed, Boolean archived, OffsetDateTime registeredAt, OffsetDateTime archivedAt,
-      LoyaltyPoints loyaltyPoints) {
-    this.setId(customerId);
-    this.setFullName(fullName);
-    this.setBirthDate(birthDate);
-    this.setEmail(email);
-    this.setPhone(phone);
-    this.setDocument(document);
-    this.setPromotionNotificationsAllowed(promotionNotificationsAllowed);
-    this.setRegisteredAt(registeredAt);
-    this.setArchived(false);
-    this.setArchivedAt(archivedAt);
-    this.setLoyaltyPoints(loyaltyPoints);
+  public static Customer brandnew(FullName fullName, LocalDate birthDate, String email, String phone, String document,
+      Boolean promotionNotificationsAllowed, Address address) {
+    var customerId = new CustomerId(UUID.randomUUID());
+    var registeredAt = OffsetDateTime.now();
+    return new Customer(customerId, fullName, birthDate, email, phone, document, promotionNotificationsAllowed, false,
+        null, registeredAt, LoyaltyPoints.ZERO, address);
   }
 
-  public Customer(CustomerId customerId, FullName fullName, LocalDate birthDate, String email, String phone,
-      String document,
-      Boolean promotionNotificationsAllowed, OffsetDateTime registeredAt) {
+  public static Customer existed(CustomerId customerId, FullName fullName, LocalDate birthDate, String email,
+      String phone, String document, Boolean promotionNotificationsAllowed, Boolean archived, OffsetDateTime archivedAt,
+      OffsetDateTime registeredAt, LoyaltyPoints loyaltyPoints, Address address) {
+    return new Customer(customerId, fullName, birthDate, email, phone, document, promotionNotificationsAllowed,
+        archived, registeredAt, archivedAt, loyaltyPoints, address);
+  }
+
+  private Customer(CustomerId customerId, FullName fullName, LocalDate birthDate, String email, String phone,
+      String document, Boolean promotionNotificationsAllowed, Boolean archived, OffsetDateTime archivedAt,
+      OffsetDateTime registeredAt, LoyaltyPoints loyaltyPoints, Address address) {
     this.setId(customerId);
     this.setFullName(fullName);
     this.setBirthDate(birthDate);
@@ -56,8 +57,10 @@ public class Customer {
     this.setDocument(document);
     this.setPromotionNotificationsAllowed(promotionNotificationsAllowed);
     this.setRegisteredAt(registeredAt);
-    this.setArchived(false);
-    this.setLoyaltyPoints(LoyaltyPoints.ZERO);
+    this.setArchived(archived);
+    this.setArchivedAt(archivedAt);
+    this.setLoyaltyPoints(loyaltyPoints);
+    this.setAddress(address);
   }
 
   public void addLoyaltyPoints(Integer points) {
@@ -75,6 +78,10 @@ public class Customer {
     this.setDocument("00000000000");
     this.setBirthDate(null);
     this.setPromotionNotificationsAllowed(false);
+    var address = this.address().toBuilder();
+    address.number("Anounymous");
+    address.complement("Anounymous");
+    this.setAddress(address.build());
   }
 
   private void customerCanBeModified() {
@@ -106,6 +113,11 @@ public class Customer {
   public void changePhone(String phone) {
     customerCanBeModified();
     this.setPhone(phone);
+  }
+
+  public void changeAddress(Address address) {
+    customerCanBeModified();
+    this.setAddress(address);
   }
 
   public CustomerId id() {
@@ -150,6 +162,10 @@ public class Customer {
 
   public LoyaltyPoints loyaltyPoints() {
     return loyaltyPoints;
+  }
+
+  public Address address() {
+    return address;
   }
 
   private void setId(CustomerId customerId) {
@@ -213,6 +229,10 @@ public class Customer {
     this.registeredAt = registeredAt;
   }
 
+  private void setAddress(Address address) {
+    Objects.requireNonNull(address);
+    this.address = address;
+  }
 
   @Override
   public boolean equals(Object o) {
