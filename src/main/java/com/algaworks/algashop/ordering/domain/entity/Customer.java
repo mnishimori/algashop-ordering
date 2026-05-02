@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.Builder;
 
 public class Customer {
 
@@ -31,7 +32,8 @@ public class Customer {
   private LoyaltyPoints loyaltyPoints;
   private Address address;
 
-  public static Customer brandnew(FullName fullName, LocalDate birthDate, String email, String phone, String document,
+  @Builder(builderMethodName = "brandnew", builderClassName = "BrandNewCustomerBuilder")
+  private static Customer createBrandnew(FullName fullName, LocalDate birthDate, String email, String phone, String document,
       Boolean promotionNotificationsAllowed, Address address) {
     var customerId = new CustomerId(UUID.randomUUID());
     var registeredAt = OffsetDateTime.now();
@@ -39,7 +41,8 @@ public class Customer {
         null, registeredAt, LoyaltyPoints.ZERO, address);
   }
 
-  public static Customer existed(CustomerId customerId, FullName fullName, LocalDate birthDate, String email,
+  @Builder(builderMethodName = "existed", builderClassName = "ExistedCustomerBuilder")
+  private static Customer createExisted(CustomerId customerId, FullName fullName, LocalDate birthDate, String email,
       String phone, String document, Boolean promotionNotificationsAllowed, Boolean archived, OffsetDateTime archivedAt,
       OffsetDateTime registeredAt, LoyaltyPoints loyaltyPoints, Address address) {
     return new Customer(customerId, fullName, birthDate, email, phone, document, promotionNotificationsAllowed,

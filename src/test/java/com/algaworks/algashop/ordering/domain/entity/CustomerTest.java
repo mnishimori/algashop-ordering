@@ -31,14 +31,9 @@ class CustomerTest {
   private static final OffsetDateTime REGISTERED_AT = OffsetDateTime.parse("2024-01-15T10:30:00+03:00");
 
   private Customer createCustomer() {
-    return createCustomerWithId();
-  }
-
-  private Customer createCustomerWithId() {
     var address = createCustomerAddress();
-    return Customer.brandnew(
-        new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, true, address
-    );
+    return Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
   }
 
   private Address createCustomerAddress() {
@@ -55,7 +50,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should create customer with full constructor")
   void shouldCreateCustomerWithFullConstructor() {
-    var customer = createCustomerWithId();
+    var customer = createCustomer();
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
@@ -72,9 +67,8 @@ class CustomerTest {
   @DisplayName("Should create customer with simplified constructor")
   void shouldCreateCustomerWithSimplifiedConstructor() {
     var address = createCustomerAddress();
-    var customerId = new CustomerId(CUSTOMER_ID);
-    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(false).address(address).build();
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
@@ -89,8 +83,8 @@ class CustomerTest {
   @DisplayName("Should create customer with null birth date")
   void shouldCreateCustomerWithNullBirthDate() {
     var address = createCustomerAddress();
-    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), null, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(null).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
 
     assertThat(customer.birthDate()).isNull();
   }
@@ -99,16 +93,18 @@ class CustomerTest {
   @DisplayName("Should throw exception when full name is null")
   void shouldThrowExceptionWhenFullNameIsNull() {
     var address = createCustomerAddress();
-    assertThatThrownBy(() -> Customer.brandnew(null, BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Customer.brandnew().fullName(new FullName(null, null)).birthDate(BIRTH_DATE).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when full name is blank")
   void shouldThrowExceptionWhenFullNameIsBlank() {
     var address = createCustomerAddress();
-    assertThatThrownBy(() -> Customer.brandnew(new FullName(" ", " "), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address)).isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> Customer.brandnew().fullName(new FullName(" ", " ")).birthDate(BIRTH_DATE).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+            IllegalArgumentException.class)
         .hasMessage(FULL_NAME_CANNOT_BE_BLANK);
   }
 
@@ -117,8 +113,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenEmailIsNull() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, null, PHONE, DOCUMENT, false,
-            address)).isInstanceOf(NullPointerException.class);
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(null)
+            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build())
+        .isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -126,9 +123,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenEmailIsBlank() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, " ", PHONE, DOCUMENT,
-            false,
-            address)).isInstanceOf(IllegalArgumentException.class)
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(" ")
+            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+            IllegalArgumentException.class)
         .hasMessage("Email cannot be blank");
   }
 
@@ -137,8 +134,10 @@ class CustomerTest {
   void shouldThrowExceptionWhenEmailIsInvalid() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, "invalid-email", PHONE, DOCUMENT, false,
-            address)).isInstanceOf(IllegalArgumentException.class)
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+            .email("invalid-email")
+            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+            IllegalArgumentException.class)
         .hasMessage("Email is invalid");
   }
 
@@ -147,8 +146,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenPhoneIsNull() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, null, DOCUMENT, false,
-            address)).isInstanceOf(NullPointerException.class);
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+            .phone(null).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        NullPointerException.class);
   }
 
   @Test
@@ -156,8 +156,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenPhoneIsBlank() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, " ", DOCUMENT, false,
-            address)).isInstanceOf(IllegalArgumentException.class)
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+            .phone(" ").document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+            IllegalArgumentException.class)
         .hasMessage("Phone cannot be blank");
   }
 
@@ -166,8 +167,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenDocumentIsNull() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, null, false,
-            address)).isInstanceOf(NullPointerException.class);
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+            .phone(PHONE).document(null).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        NullPointerException.class);
   }
 
   @Test
@@ -175,8 +177,9 @@ class CustomerTest {
   void shouldThrowExceptionWhenDocumentIsBlank() {
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, " ", false,
-            address)).isInstanceOf(IllegalArgumentException.class)
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+            .phone(PHONE).document(" ").promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+            IllegalArgumentException.class)
         .hasMessage("Document cannot be blank");
   }
 
@@ -186,8 +189,9 @@ class CustomerTest {
     LocalDate futureDate = LocalDate.now().plusDays(1);
     var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), futureDate, EMAIL, PHONE, DOCUMENT, false,
-            address)).isInstanceOf(IllegalArgumentException.class)
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(futureDate).email(EMAIL)
+            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build())
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessage(BIRTHDATE_MUST_IN_PAST);
   }
 
@@ -216,10 +220,11 @@ class CustomerTest {
   @Test
   @DisplayName("Should add loyalty points to existing points")
   void shouldAddLoyaltyPointsToExistingPoints() {
-    var customerId = new CustomerId();
     var address = createCustomerAddress();
-    Customer customer = Customer.existed(customerId, new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT,
-        false, false, null, REGISTERED_AT,  new LoyaltyPoints(50), address);
+    Customer customer = Customer.existed().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL).phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
+        .archivedAt(null).archived(false)
+        .loyaltyPoints(new LoyaltyPoints(50)).build();
 
     customer.addLoyaltyPoints(25);
 
@@ -269,8 +274,8 @@ class CustomerTest {
   @DisplayName("Should archive customer with all required changes")
   void shouldArchiveCustomerWithAllRequiredChanges() {
     var address = createCustomerAddress();
-    var customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
 
     customer.archive();
 
@@ -288,8 +293,9 @@ class CustomerTest {
   @DisplayName("Should enable promotion notifications")
   void shouldEnablePromotionNotifications() {
     var address = createCustomerAddress();
-    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(false).address(address).build();
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
 
     customer.enablePromotionNotifications();
@@ -470,8 +476,9 @@ class CustomerTest {
   void shouldNotBeEqualWhenDifferentId() {
     Customer customer1 = createCustomer();
     var address = createCustomerAddress();
-    Customer customer2 = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    Customer customer2 = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
 
     assertThat(customer1).isNotEqualTo(customer2);
   }
@@ -543,8 +550,10 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when address is null in constructor")
   void shouldThrowExceptionWhenAddressIsNullInConstructor() {
-    assertThatThrownBy(() -> Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(
+        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(null).build()).isInstanceOf(
+        NullPointerException.class);
   }
 
   @Test
@@ -591,8 +600,9 @@ class CustomerTest {
   @DisplayName("Should return archived at")
   void shouldReturnArchivedAt() {
     var address = createCustomerAddress();
-    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
 
     assertThat(customer.archivedAt()).isNull();
 
@@ -605,8 +615,9 @@ class CustomerTest {
   @DisplayName("Should anonymize address when archiving customer")
   void shouldAnonymizeAddressWhenArchivingCustomer() {
     var address = createCustomerAddress();
-    Customer customer = Customer.brandnew(new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT, false,
-        address);
+    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
 
     customer.archive();
 
@@ -619,8 +630,10 @@ class CustomerTest {
   void shouldReturnLoyaltyPoints() {
     var customerId = new CustomerId(CUSTOMER_ID);
     var address = createCustomerAddress();
-    Customer customer = Customer.existed(customerId, new FullName(FIRST_NAME, LAST_NAME), BIRTH_DATE, EMAIL, PHONE, DOCUMENT,
-        false, false, null, REGISTERED_AT,  new LoyaltyPoints(150), address);
+    Customer customer = Customer.existed().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
+        .email(EMAIL)
+        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
+        .loyaltyPoints(new LoyaltyPoints(150)).build();
 
     assertThat(customer.loyaltyPoints().value()).isEqualTo(150);
   }
