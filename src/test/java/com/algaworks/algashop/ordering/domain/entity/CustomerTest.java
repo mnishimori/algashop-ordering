@@ -1,5 +1,8 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.BIRTH_DATE;
+import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.FIRST_NAME;
+import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.LAST_NAME;
 import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.BIRTHDATE_MUST_IN_PAST;
 import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.FULL_NAME_CANNOT_BE_BLANK;
 import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.LOYALTY_POINTS_CANNOT_BE_NEGATIVE_OR_ZERO;
@@ -7,57 +10,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
-
 import com.algaworks.algashop.ordering.domain.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.valueobject.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CustomerTest {
 
-  private static final UUID CUSTOMER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-  private static final String FIRST_NAME = "João";
-  private static final String LAST_NAME = "Silva";
-  private static final LocalDate BIRTH_DATE = LocalDate.of(1990, 5, 15);
-  private static final String EMAIL = "joao.silva@example.com";
-  private static final String PHONE = "11999999999";
-  private static final String DOCUMENT = "12345678901";
-  private static final OffsetDateTime REGISTERED_AT = OffsetDateTime.parse("2024-01-15T10:30:00+03:00");
-
-  private Customer createCustomer() {
-    var address = createCustomerAddress();
-    return Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
-  }
-
-  private Address createCustomerAddress() {
-    return Address.builder()
-        .street("Bourbon Street")
-        .number("1234")
-        .neighborhood("North Valley")
-        .city("New York")
-        .state("New York")
-        .zipCode(new ZipCode("12345-678"))
-        .build();
-  }
-
   @Test
   @DisplayName("Should create customer with full constructor")
   void shouldCreateCustomerWithFullConstructor() {
-    var customer = createCustomer();
+    var customer = CustomerTestDataBuilder.brandNewCustomer().build();
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
-    assertThat(customer.email()).isEqualTo(EMAIL);
-    assertThat(customer.phone()).isEqualTo(PHONE);
-    assertThat(customer.document()).isEqualTo(DOCUMENT);
-    assertThat(customer.promotionNotificationsAllowed()).isTrue();
+    assertThat(customer.email()).isEqualTo(CustomerTestDataBuilder.EMAIL);
+    assertThat(customer.phone()).isEqualTo(CustomerTestDataBuilder.PHONE);
+    assertThat(customer.document()).isEqualTo(CustomerTestDataBuilder.DOCUMENT);
+    assertThat(customer.promotionNotificationsAllowed()).isFalse();
     assertThat(customer.archived()).isFalse();
     assertThat(customer.archivedAt()).isNull();
     assertThat(customer.loyaltyPoints()).isEqualTo(LoyaltyPoints.ZERO);
@@ -66,15 +39,13 @@ class CustomerTest {
   @Test
   @DisplayName("Should create customer with simplified constructor")
   void shouldCreateCustomerWithSimplifiedConstructor() {
-    var address = createCustomerAddress();
-    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(false).address(address).build();
+    var customer = CustomerTestDataBuilder.brandNewCustomer().build();
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
-    assertThat(customer.email()).isEqualTo(EMAIL);
-    assertThat(customer.phone()).isEqualTo(PHONE);
-    assertThat(customer.document()).isEqualTo(DOCUMENT);
+    assertThat(customer.email()).isEqualTo(CustomerTestDataBuilder.EMAIL);
+    assertThat(customer.phone()).isEqualTo(CustomerTestDataBuilder.PHONE);
+    assertThat(customer.document()).isEqualTo(CustomerTestDataBuilder.DOCUMENT);
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
     assertThat(customer.loyaltyPoints()).isEqualTo(LoyaltyPoints.ZERO);
   }
@@ -82,28 +53,23 @@ class CustomerTest {
   @Test
   @DisplayName("Should create customer with null birth date")
   void shouldCreateCustomerWithNullBirthDate() {
-    var address = createCustomerAddress();
-    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(null).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
-
+    var customer = CustomerTestDataBuilder.brandNewCustomer().birthDate(null).build();
     assertThat(customer.birthDate()).isNull();
   }
 
   @Test
   @DisplayName("Should throw exception when full name is null")
   void shouldThrowExceptionWhenFullNameIsNull() {
-    var address = createCustomerAddress();
-    assertThatThrownBy(() -> Customer.brandnew().fullName(new FullName(null, null)).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+    assertThatThrownBy(
+        () -> CustomerTestDataBuilder.brandNewCustomer().fullName(new FullName(null, null)).build()).isInstanceOf(
         NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when full name is blank")
   void shouldThrowExceptionWhenFullNameIsBlank() {
-    var address = createCustomerAddress();
-    assertThatThrownBy(() -> Customer.brandnew().fullName(new FullName(" ", " ")).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+    assertThatThrownBy(
+        () -> CustomerTestDataBuilder.brandNewCustomer().fullName(new FullName("", "")).build()).isInstanceOf(
             IllegalArgumentException.class)
         .hasMessage(FULL_NAME_CANNOT_BE_BLANK);
   }
@@ -111,20 +77,16 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when email is null")
   void shouldThrowExceptionWhenEmailIsNull() {
-    var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(null)
-            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build())
+        () -> CustomerTestDataBuilder.brandNewCustomer().email(null).build())
         .isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when email is blank")
   void shouldThrowExceptionWhenEmailIsBlank() {
-    var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(" ")
-            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().email(" ").build()).isInstanceOf(
             IllegalArgumentException.class)
         .hasMessage("Email cannot be blank");
   }
@@ -132,11 +94,9 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when email is invalid")
   void shouldThrowExceptionWhenEmailIsInvalid() {
-    var address = createCustomerAddress();
+
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-            .email("invalid-email")
-            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().email("invalid-email").build()).isInstanceOf(
             IllegalArgumentException.class)
         .hasMessage("Email is invalid");
   }
@@ -144,20 +104,17 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when phone is null")
   void shouldThrowExceptionWhenPhoneIsNull() {
-    var address = createCustomerAddress();
+
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-            .phone(null).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().phone(null).build()).isInstanceOf(
         NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when phone is blank")
   void shouldThrowExceptionWhenPhoneIsBlank() {
-    var address = createCustomerAddress();
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-            .phone(" ").document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().phone(" ").build()).isInstanceOf(
             IllegalArgumentException.class)
         .hasMessage("Phone cannot be blank");
   }
@@ -165,20 +122,18 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when document is null")
   void shouldThrowExceptionWhenDocumentIsNull() {
-    var address = createCustomerAddress();
+
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-            .phone(PHONE).document(null).promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().document(null).build()).isInstanceOf(
         NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when document is blank")
   void shouldThrowExceptionWhenDocumentIsBlank() {
-    var address = createCustomerAddress();
+
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-            .phone(PHONE).document(" ").promotionNotificationsAllowed(true).address(address).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.brandNewCustomer().document(" ").build()).isInstanceOf(
             IllegalArgumentException.class)
         .hasMessage("Document cannot be blank");
   }
@@ -187,10 +142,9 @@ class CustomerTest {
   @DisplayName("Should throw exception when birth date is in the future")
   void shouldThrowExceptionWhenBirthDateIsInTheFuture() {
     LocalDate futureDate = LocalDate.now().plusDays(1);
-    var address = createCustomerAddress();
+
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(futureDate).email(EMAIL)
-            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build())
+        () -> CustomerTestDataBuilder.brandNewCustomer().birthDate(futureDate).build())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage(BIRTHDATE_MUST_IN_PAST);
   }
@@ -198,7 +152,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should add loyalty points to customer")
   void shouldAddLoyaltyPointsToCustomer() {
-    Customer customer = createCustomer();
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
 
     customer.addLoyaltyPoints(100);
 
@@ -208,7 +162,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should accumulate loyalty points when adding multiple times")
   void shouldAccumulateLoyaltyPointsWhenAddingMultipleTimes() {
-    Customer customer = createCustomer();
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
 
     customer.addLoyaltyPoints(50);
     customer.addLoyaltyPoints(30);
@@ -220,11 +174,8 @@ class CustomerTest {
   @Test
   @DisplayName("Should add loyalty points to existing points")
   void shouldAddLoyaltyPointsToExistingPoints() {
-    var address = createCustomerAddress();
-    Customer customer = Customer.existed().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL).phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
-        .archivedAt(null).archived(false)
-        .loyaltyPoints(new LoyaltyPoints(50)).build();
+
+    Customer customer = CustomerTestDataBuilder.existedCustomer().loyaltyPoints(new LoyaltyPoints(50)).build();
 
     customer.addLoyaltyPoints(25);
 
@@ -234,16 +185,15 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding null loyalty points")
   void shouldThrowExceptionWhenAddingNullLoyaltyPoints() {
-    var customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThatThrownBy(() -> customer.addLoyaltyPoints(null))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> customer.addLoyaltyPoints(null)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw exception when adding zero loyalty points")
   void shouldThrowExceptionWhenAddingZeroLoyaltyPoints() {
-    var customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(0))
         .isInstanceOf(IllegalArgumentException.class)
@@ -253,7 +203,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding negative loyalty points")
   void shouldThrowExceptionWhenAddingNegativeLoyaltyPoints() {
-    var customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.addLoyaltyPoints(-10))
         .isInstanceOf(IllegalArgumentException.class)
@@ -263,19 +213,16 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when adding loyalty points to archived customer")
   void shouldThrowExceptionWhenAddingLoyaltyPointsToArchivedCustomer() {
-    var customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
-    assertThatThrownBy(() -> customer.addLoyaltyPoints(100))
-        .isInstanceOf(CustomerArchivedException.class);
+    assertThatThrownBy(() -> customer.addLoyaltyPoints(100)).isInstanceOf(CustomerArchivedException.class);
   }
 
   @Test
   @DisplayName("Should archive customer with all required changes")
   void shouldArchiveCustomerWithAllRequiredChanges() {
-    var address = createCustomerAddress();
-    var customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     customer.archive();
 
@@ -292,10 +239,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should enable promotion notifications")
   void shouldEnablePromotionNotifications() {
-    var address = createCustomerAddress();
-    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(false).address(address).build();
+    var customer = CustomerTestDataBuilder.existedCustomer().promotionNotificationsAllowed(false).build();
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
 
     customer.enablePromotionNotifications();
@@ -306,7 +250,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should disable promotion notifications")
   void shouldDisablePromotionNotifications() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().promotionNotificationsAllowed(true).build();
     assertThat(customer.promotionNotificationsAllowed()).isTrue();
 
     customer.disablePromotionNotifications();
@@ -317,7 +261,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should change name")
   void shouldChangeName() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     customer.changeName(new FullName("MARIA", "SILVA"));
 
@@ -327,7 +271,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing name to blank")
   void shouldThrowExceptionWhenChangingNameToBlank() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeName(new FullName("", "")))
         .isInstanceOf(IllegalArgumentException.class)
@@ -337,7 +281,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing name to null")
   void shouldThrowExceptionWhenChangingNameToNull() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeName(null))
         .isInstanceOf(NullPointerException.class);
@@ -346,7 +290,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should change email")
   void shouldChangeEmail() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().email("joao.silva@example.com").build();
 
     customer.changeEmail("maria.silva@example.com");
 
@@ -356,7 +300,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing email to invalid")
   void shouldThrowExceptionWhenChangingEmailToInvalid() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeEmail("invalid"))
         .isInstanceOf(IllegalArgumentException.class)
@@ -366,7 +310,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing email to blank")
   void shouldThrowExceptionWhenChangingEmailToBlank() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeEmail("   "))
         .isInstanceOf(IllegalArgumentException.class)
@@ -376,7 +320,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing email to null")
   void shouldThrowExceptionWhenChangingEmailToNull() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeEmail(null))
         .isInstanceOf(NullPointerException.class);
@@ -385,7 +329,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should change phone")
   void shouldChangePhone() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     customer.changePhone("11888888888");
 
@@ -395,7 +339,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing phone to blank")
   void shouldThrowExceptionWhenChangingPhoneToBlank() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changePhone("   "))
         .isInstanceOf(IllegalArgumentException.class)
@@ -405,7 +349,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing phone to null")
   void shouldThrowExceptionWhenChangingPhoneToNull() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changePhone(null))
         .isInstanceOf(NullPointerException.class);
@@ -414,7 +358,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when archiving an already archived customer")
   void shouldThrowExceptionWhenArchivingAlreadyArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(customer::archive)
@@ -424,7 +368,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing name of archived customer")
   void shouldThrowExceptionWhenChangingNameOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(() -> customer.changeName(new FullName("MARIA", "SILVA")))
@@ -434,7 +378,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing email of archived customer")
   void shouldThrowExceptionWhenChangingEmailOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(() -> customer.changeEmail("maria.silva@example.com"))
@@ -444,7 +388,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing phone of archived customer")
   void shouldThrowExceptionWhenChangingPhoneOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(() -> customer.changePhone("11888888888"))
@@ -454,7 +398,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when enabling promotion notifications of archived customer")
   void shouldThrowExceptionWhenEnablingPromotionNotificationsOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(customer::enablePromotionNotifications)
@@ -464,7 +408,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when disabling promotion notifications of archived customer")
   void shouldThrowExceptionWhenDisablingPromotionNotificationsOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
     assertThatThrownBy(customer::disablePromotionNotifications)
@@ -474,11 +418,8 @@ class CustomerTest {
   @Test
   @DisplayName("Should not be equal when different id")
   void shouldNotBeEqualWhenDifferentId() {
-    Customer customer1 = createCustomer();
-    var address = createCustomerAddress();
-    Customer customer2 = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
+    var customer1 = CustomerTestDataBuilder.brandNewCustomer().build();
+    var customer2 = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThat(customer1).isNotEqualTo(customer2);
   }
@@ -486,7 +427,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should not be equal when null")
   void shouldNotBeEqualWhenNull() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThat(customer).isNotEqualTo(null);
   }
@@ -494,7 +435,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should not be equal when different class")
   void shouldNotBeEqualWhenDifferentClass() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThat(customer).isNotEqualTo("not a customer");
   }
@@ -502,7 +443,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should change address")
   void shouldChangeAddress() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     var newAddress = Address.builder()
         .street("New Street")
         .number("5678")
@@ -523,7 +464,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing address to null")
   void shouldThrowExceptionWhenChangingAddressToNull() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThatThrownBy(() -> customer.changeAddress(null))
         .isInstanceOf(NullPointerException.class);
@@ -532,7 +473,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should throw exception when changing address of archived customer")
   void shouldThrowExceptionWhenChangingAddressOfArchivedCustomer() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
     var newAddress = Address.builder()
         .street("New Street")
@@ -551,15 +492,14 @@ class CustomerTest {
   @DisplayName("Should throw exception when address is null in constructor")
   void shouldThrowExceptionWhenAddressIsNullInConstructor() {
     assertThatThrownBy(
-        () -> Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-            .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(null).build()).isInstanceOf(
+        () -> CustomerTestDataBuilder.existedCustomer().address(null).build()).isInstanceOf(
         NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should return address")
   void shouldReturnAddress() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     Address address = customer.address();
 
@@ -575,15 +515,15 @@ class CustomerTest {
   @Test
   @DisplayName("Should return document")
   void shouldReturnDocument() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThat(customer.document()).isEqualTo(DOCUMENT);
+    assertThat(customer.document()).isEqualTo(CustomerTestDataBuilder.DOCUMENT);
   }
 
   @Test
   @DisplayName("Should return birth date")
   void shouldReturnBirthDate() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
   }
@@ -591,19 +531,17 @@ class CustomerTest {
   @Test
   @DisplayName("Should return archived status")
   void shouldReturnArchivedStatus() {
-    Customer customer = createCustomer();
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThat(customer.archived()).isFalse();
+    customer.archive();
+
+    assertThat(customer.archived()).isTrue();
   }
 
   @Test
   @DisplayName("Should return archived at")
   void shouldReturnArchivedAt() {
-    var address = createCustomerAddress();
-    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
-
+    Customer customer = CustomerTestDataBuilder.existedCustomer().build();
     assertThat(customer.archivedAt()).isNull();
 
     customer.archive();
@@ -614,10 +552,7 @@ class CustomerTest {
   @Test
   @DisplayName("Should anonymize address when archiving customer")
   void shouldAnonymizeAddressWhenArchivingCustomer() {
-    var address = createCustomerAddress();
-    Customer customer = Customer.brandnew().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address).build();
+    Customer customer = CustomerTestDataBuilder.existedCustomer().build();
 
     customer.archive();
 
@@ -628,14 +563,10 @@ class CustomerTest {
   @Test
   @DisplayName("Should return loyalty points")
   void shouldReturnLoyaltyPoints() {
-    var customerId = new CustomerId(CUSTOMER_ID);
-    var address = createCustomerAddress();
-    Customer customer = Customer.existed().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE)
-        .email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
-        .loyaltyPoints(new LoyaltyPoints(150)).build();
+    Customer customer = CustomerTestDataBuilder.existedCustomer().build();
+
+    customer.addLoyaltyPoints(150);
 
     assertThat(customer.loyaltyPoints().value()).isEqualTo(150);
   }
-
 }
