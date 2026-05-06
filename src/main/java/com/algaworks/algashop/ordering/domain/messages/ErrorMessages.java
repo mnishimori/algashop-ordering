@@ -11,7 +11,8 @@ public class ErrorMessages {
   public static final String FULL_NAME_CANNOT_BE_BLANK = "Full name cannot be blank";
   public static final String ZIP_CODE_CANNOT_BE_BLANK = "Zip code cannot be blank";
   public static final String ZIP_CODE_IS_INVALID = "Zip code is invalid";
-
-
+  public static final String QUANTITY_MUST_BE_GREATER_THAN_ZERO = "Quantity must be greater than zero";
+  public static final String VALUE_CANNOT_BE_NULL_OR_EMPTY = "Value cannot be null or empty";
+  public static final String VALUE_CANNOT_BE_NEGATIVE = "Value cannot be negative";
 
 }
