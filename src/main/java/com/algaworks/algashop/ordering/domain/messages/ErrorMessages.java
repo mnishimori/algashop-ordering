@@ -14,5 +14,5 @@ public class ErrorMessages {
   public static final String QUANTITY_MUST_BE_GREATER_THAN_ZERO = "Quantity must be greater than zero";
   public static final String VALUE_CANNOT_BE_NULL_OR_EMPTY = "Value cannot be null or empty";
   public static final String VALUE_CANNOT_BE_NEGATIVE = "Value cannot be negative";
-
+  public static final String PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY = "Product name cannot be null or empty";
 }
