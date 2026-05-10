@@ -7,10 +7,9 @@ import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.PHON
 import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.validator.EmailFormatValidator;
 import com.algaworks.algashop.ordering.domain.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.valueobject.CustomerId;
+import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.LoyaltyPoints;
-import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;

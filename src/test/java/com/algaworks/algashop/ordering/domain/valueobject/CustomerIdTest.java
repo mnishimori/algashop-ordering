@@ -3,6 +3,7 @@ package com.algaworks.algashop.ordering.domain.valueobject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
