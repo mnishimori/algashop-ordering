@@ -12,6 +12,15 @@ class OrderIdTest {
   private static final TSID TEST_TSID = TSID.from(123456789L);
 
   @Test
+  @DisplayName("Should create OrderId with no-arg constructor")
+  void shouldCreateOrderIdWithNoArgConstructor() {
+    OrderId orderId = new OrderId();
+
+    assertThat(orderId.value()).isNotNull();
+    assertThat(orderId.value()).isInstanceOf(io.hypersistence.tsid.TSID.class);
+  }
+
+  @Test
   @DisplayName("Should create OrderId with provided TSID")
   void shouldCreateOrderIdWithProvidedTsid() {
     OrderId orderId = new OrderId(TEST_TSID);

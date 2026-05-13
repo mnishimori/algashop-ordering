@@ -29,6 +29,14 @@ class MoneyTest {
   }
 
   @Test
+  @DisplayName("Should provide ZERO constant")
+  void shouldProvideZeroConstant() {
+    var zeroMoney = Money.ZERO;
+
+    assertThat(zeroMoney.value()).isEqualByComparingTo(BigDecimal.ZERO);
+  }
+
+  @Test
   @DisplayName("Should scale value to two decimal places")
   void shouldScaleValueToTwoDecimalPlaces() {
     var money = new Money(new BigDecimal("10"));

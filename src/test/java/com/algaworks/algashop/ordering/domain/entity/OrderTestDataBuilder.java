@@ -35,8 +35,8 @@ public class OrderTestDataBuilder {
   private OrderTestDataBuilder() {
     this.id = new OrderId(TSID.from(123456789L));
     this.customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-    this.totalAmount = new Money("100.00");
-    this.totalItems = new Quantity(new BigDecimal(5));
+    this.totalAmount = Money.ZERO;
+    this.totalItems = Quantity.ZERO;
     this.placedAt = OffsetDateTime.now();
     this.paidAt = null;
     this.canceledAt = null;
@@ -45,7 +45,7 @@ public class OrderTestDataBuilder {
     this.shippingInfo = null;
     this.status = OrderStatus.DRAFT;
     this.paymentMethod = null;
-    this.shippingCost = new Money("10.00");
+    this.shippingCost = Money.ZERO;
     this.expectedDeliveryDate = LocalDate.now().plusDays(7);
     this.items = new HashSet<>();
   }

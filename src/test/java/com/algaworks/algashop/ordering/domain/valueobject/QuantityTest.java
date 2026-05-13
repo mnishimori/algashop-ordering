@@ -28,6 +28,14 @@ class QuantityTest {
   }
 
   @Test
+  @DisplayName("Should provide ZERO constant")
+  void shouldProvideZeroConstant() {
+    var zeroQuantity = Quantity.ZERO;
+
+    assertThat(zeroQuantity.value()).isEqualByComparingTo(BigDecimal.ZERO);
+  }
+
+  @Test
   @DisplayName("Should throw exception when value is null")
   void shouldThrowExceptionWhenValueIsNull() {
     assertThatThrownBy(() -> new Quantity(null))

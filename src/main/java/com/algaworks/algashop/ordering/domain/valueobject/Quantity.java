@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record Quantity(BigDecimal value) implements Comparable<Quantity> {
 
-  public static BigDecimal Quantity = BigDecimal.ZERO;
+  public static final Quantity ZERO = new Quantity(BigDecimal.ZERO);
 
   public Quantity(BigDecimal value) {
     if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {

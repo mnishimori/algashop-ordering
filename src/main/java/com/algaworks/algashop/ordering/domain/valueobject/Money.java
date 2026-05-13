@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 public record Money(BigDecimal value) implements Comparable<Money>{
 
+  public static final Money ZERO = new Money(BigDecimal.ZERO);
   private static final int SCALE = 2;
 
   public Money(BigDecimal value) {

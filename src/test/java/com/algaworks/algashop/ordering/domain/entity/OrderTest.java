@@ -55,8 +55,8 @@ class OrderTest {
   }
 
   @Test
-  @DisplayName("Should create order with builder")
-  void shouldCreateOrderWithBuilder() {
+  @DisplayName("Should create order with test data builder")
+  void shouldCreateOrderWithTestDataBuilder() {
     Order order = OrderTestDataBuilder.anOrder().build();
 
     assertThat(order).isNotNull();
@@ -65,6 +65,22 @@ class OrderTest {
     assertThat(order.totalAmount()).isNotNull();
     assertThat(order.totalItems()).isNotNull();
     assertThat(order.status()).isEqualTo(OrderStatus.DRAFT);
+  }
+
+  @Test
+  @DisplayName("Should create order with no-arg OrderId constructor")
+  void shouldCreateOrderWithNoArgOrderIdConstructor() {
+    OrderId orderId = new OrderId();
+    CustomerId customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    Money totalAmount = Money.ZERO;
+    Quantity totalItems = Quantity.ZERO;
+    Set<OrderItem> items = new HashSet<>();
+
+    Order order = new Order(orderId, customerId, totalAmount, totalItems, null, null, null, null, null, null,
+        OrderStatus.DRAFT, null, null, null, items);
+
+    assertThat(order.id()).isNotNull();
+    assertThat(order.id().value()).isNotNull();
   }
 
   @Test

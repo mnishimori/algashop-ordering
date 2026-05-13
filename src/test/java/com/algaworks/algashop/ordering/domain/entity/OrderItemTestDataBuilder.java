@@ -27,7 +27,7 @@ public class OrderItemTestDataBuilder {
     this.productName = new ProductName("Product Name");
     this.price = new Money("50.00");
     this.quantity = new Quantity(new BigDecimal(2));
-    this.totalAmount = new Money("100.00");
+    this.totalAmount = Money.ZERO;
   }
 
   public static OrderItemTestDataBuilder anOrderItem() {

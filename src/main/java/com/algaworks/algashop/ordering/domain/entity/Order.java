@@ -8,8 +8,10 @@ import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Builder;
 
 public class Order {
 
@@ -29,6 +31,7 @@ public class Order {
   private LocalDate expectedDeliveryDate;
   private Set<OrderItem> items;
 
+  @Builder(builderClassName = "OrderBuilder", builderMethodName = "existingOrderBuilder")
   public Order(OrderId id, CustomerId customerId, Money totalAmount, Quantity totalItems, OffsetDateTime placedAt,
       OffsetDateTime paidAt, OffsetDateTime canceledAt, OffsetDateTime readyAt, BillingInfo billingInfo,
       ShippingInfo shippingInfo, OrderStatus status, PaymentMethod paymentMethod, Money shippingCost,
@@ -48,6 +51,12 @@ public class Order {
     setShippingCost(shippingCost);
     setExpectedDeliveryDate(expectedDeliveryDate);
     setItems(items);
+  }
+
+  @Builder(builderClassName = "OrderBuilder", builderMethodName = "draftOrderBuilder")
+  private static Order draftOrder(CustomerId customerId) {
+    return new Order(new OrderId(), customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
+        OrderStatus.DRAFT, null, null, null, new HashSet<>());
   }
 
   public OrderId id() {

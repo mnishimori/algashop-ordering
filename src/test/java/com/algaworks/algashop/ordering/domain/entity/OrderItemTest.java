@@ -40,8 +40,8 @@ class OrderItemTest {
   }
 
   @Test
-  @DisplayName("Should create order item with builder")
-  void shouldCreateOrderItemWithBuilder() {
+  @DisplayName("Should create order item with test data builder")
+  void shouldCreateOrderItemWithTestDataBuilder() {
     OrderItem orderItem = OrderItemTestDataBuilder.anOrderItem().build();
 
     assertThat(orderItem).isNotNull();
@@ -52,6 +52,27 @@ class OrderItemTest {
     assertThat(orderItem.price()).isNotNull();
     assertThat(orderItem.quantity()).isNotNull();
     assertThat(orderItem.totalAmount()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should create order item with no-arg constructors and constants")
+  void shouldCreateOrderItemWithNoArgConstructorsAndConstants() {
+    OrderItemId id = new OrderItemId();
+    OrderId orderId = new OrderId();
+    ProductId productId = new ProductId();
+    ProductName productName = new ProductName("Product Name");
+    Money price = new Money("50.00");
+    Quantity quantity = new Quantity(new BigDecimal(2));
+    Money totalAmount = Money.ZERO;
+
+    OrderItem orderItem = new OrderItem(id, orderId, productId, productName, price, quantity, totalAmount);
+
+    assertThat(orderItem.id()).isNotNull();
+    assertThat(orderItem.id().value()).isNotNull();
+    assertThat(orderItem.orderId()).isNotNull();
+    assertThat(orderItem.orderId().value()).isNotNull();
+    assertThat(orderItem.productId()).isNotNull();
+    assertThat(orderItem.totalAmount()).isEqualTo(Money.ZERO);
   }
 
   @Test
