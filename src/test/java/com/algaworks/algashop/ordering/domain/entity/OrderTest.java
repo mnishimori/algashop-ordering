@@ -375,4 +375,17 @@ class OrderTest {
     assertThat(orderItem.quantity()).isEqualTo(quantity);
     assertThat(orderItem.totalAmount()).isEqualTo(Money.ZERO);
   }
+
+  @Test
+  void shouldThrowExceptionWhenTryToChangeOrderItem() {
+    var order = OrderTestDataBuilder.anOrder().customerId(new CustomerId(UUID.randomUUID())).build();
+    var productId = new ProductId(UUID.randomUUID());
+    var productName = new ProductName("Notebook Pro");
+    var price = new Money("100.00");
+    var quantity = new Quantity(new BigDecimal("2"));
+    order.addOrderItem(productId, productName, price, quantity);
+
+    assertThatThrownBy(() -> order.items().clear())
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
 }
