@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -350,5 +352,27 @@ class OrderTest {
     Order order = OrderTestDataBuilder.anOrder().items(items).build();
 
     assertThat(order.items()).isEqualTo(items);
+  }
+
+  @Test
+  @DisplayName("Should add order item successfully")
+  void shouldAddOrderItemSuccessfully() {
+    var order = OrderTestDataBuilder.anOrder().customerId(new CustomerId(UUID.randomUUID())).build();
+    var productId = new ProductId(UUID.randomUUID());
+    var productName = new ProductName("Notebook Pro");
+    var price = new Money("100.00");
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    order.addOrderItem(productId, productName, price, quantity);
+
+    assertThat(order.items()).hasSize(1);
+    var orderItem = order.items().iterator().next();
+    assertThat(orderItem.id()).isNotNull();
+    assertThat(orderItem.orderId()).isEqualTo(order.id());
+    assertThat(orderItem.productId()).isEqualTo(productId);
+    assertThat(orderItem.productName()).isEqualTo(productName);
+    assertThat(orderItem.price()).isEqualTo(price);
+    assertThat(orderItem.quantity()).isEqualTo(quantity);
+    assertThat(orderItem.totalAmount()).isEqualTo(Money.ZERO);
   }
 }

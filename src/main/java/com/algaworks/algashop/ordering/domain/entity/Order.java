@@ -2,10 +2,12 @@ package com.algaworks.algashop.ordering.domain.entity;
 
 import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -57,6 +59,19 @@ public class Order {
   private static Order draftOrder(CustomerId customerId) {
     return new Order(new OrderId(), customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
         OrderStatus.DRAFT, null, null, null, new HashSet<>());
+  }
+
+  public void addOrderItem(ProductId productId, ProductName productName, Money price, Quantity quantity) {
+    var orderItem = OrderItem.draftOrderItemBuilder()
+        .orderId(this.id())
+        .productId(productId)
+        .productName(productName)
+        .price(price)
+        .quantity(quantity)
+        .build();
+    this.items.add(orderItem);
+    this.totalAmount = this.totalAmount.add(orderItem.totalAmount());
+    this.totalItems = this.totalItems.add(orderItem.quantity());
   }
 
   public OrderId id() {

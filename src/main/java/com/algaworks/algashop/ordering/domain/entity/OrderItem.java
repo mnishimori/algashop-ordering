@@ -31,7 +31,7 @@ public class OrderItem {
     setTotalAmount(totalAmount);
   }
 
-  @Builder(builderClassName = "OrderItemBuilder", builderMethodName = "draftOrderItemBuilder")
+  @Builder(builderClassName = "DraftOrderItemBuilder", builderMethodName = "draftOrderItemBuilder")
   private static OrderItem draftOrderItem(OrderId orderId, ProductId productId, ProductName productName, Money price,
       Quantity quantity) {
     return new OrderItem(new OrderItemId(), orderId, productId, productName, price, quantity, Money.ZERO);
