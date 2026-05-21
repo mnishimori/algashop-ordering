@@ -96,6 +96,34 @@ class AddOrderItemTest {
       OrderItem addedItem = order.items().iterator().next();
       assertThat(addedItem.id()).isNotNull();
     }
+
+    @Test
+    @DisplayName("Should calculate totalAmount as price multiplied by quantity")
+    void shouldCalculateTotalAmount() {
+      order.addOrderItem(productId, productName, price, quantity);
+
+      OrderItem addedItem = order.items().iterator().next();
+      Money expectedTotalAmount = price.multiply(quantity.value().intValue());
+      assertThat(addedItem.totalAmount()).isEqualTo(expectedTotalAmount);
+    }
+
+    @Test
+    @DisplayName("Should calculate totalAmount correctly for different quantities")
+    void shouldCalculateTotalAmountForDifferentQuantities() {
+      Quantity quantity1 = new Quantity(new BigDecimal("5"));
+      Quantity quantity2 = new Quantity(new BigDecimal("10"));
+
+      order.addOrderItem(productId, productName, price, quantity1);
+      order.addOrderItem(new ProductId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001")),
+          new ProductName("Mouse"), new Money("30.00"), quantity2);
+
+      var items = order.items().iterator();
+      OrderItem item1 = items.next();
+      OrderItem item2 = items.next();
+
+      assertThat(item1.totalAmount()).isEqualTo(price.multiply(5));
+      assertThat(item2.totalAmount()).isEqualTo(new Money("30.00").multiply(10));
+    }
   }
 
   @Nested

@@ -226,4 +226,49 @@ class OrderItemTest {
 
     assertThat(orderItem.totalAmount()).isEqualTo(totalAmount);
   }
+
+  @Test
+  @DisplayName("Should create order item using existingOrderItemBuilder")
+  void shouldCreateOrderItemUsingExistingOrderItemBuilder() {
+    OrderItemId id = new OrderItemId(TSID.from(123456789L));
+    OrderId orderId = new OrderId(TSID.from(987654321L));
+    ProductId productId = new ProductId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    ProductName productName = new ProductName("Product Name");
+    Money price = new Money("50.00");
+    Quantity quantity = new Quantity(new BigDecimal(2));
+    Money totalAmount = new Money("100.00");
+
+    OrderItem orderItem = OrderItem.existingOrderItemBuilder()
+        .id(id)
+        .orderId(orderId)
+        .productId(productId)
+        .productName(productName)
+        .price(price)
+        .quantity(quantity)
+        .totalAmount(totalAmount)
+        .build();
+
+    assertThat(orderItem.id()).isEqualTo(id);
+    assertThat(orderItem.orderId()).isEqualTo(orderId);
+    assertThat(orderItem.productId()).isEqualTo(productId);
+    assertThat(orderItem.productName()).isEqualTo(productName);
+    assertThat(orderItem.price()).isEqualTo(price);
+    assertThat(orderItem.quantity()).isEqualTo(quantity);
+    assertThat(orderItem.totalAmount()).isEqualTo(totalAmount);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when using existingOrderItemBuilder with null id")
+  void shouldThrowExceptionWhenUsingExistingOrderItemBuilderWithNullId() {
+    assertThatThrownBy(() -> OrderItem.existingOrderItemBuilder()
+        .id(null)
+        .orderId(new OrderId())
+        .productId(new ProductId())
+        .productName(new ProductName("Product"))
+        .price(new Money("10.00"))
+        .quantity(new Quantity(new BigDecimal(1)))
+        .totalAmount(Money.ZERO)
+        .build())
+        .isInstanceOf(NullPointerException.class);
+  }
 }
