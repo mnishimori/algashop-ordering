@@ -56,8 +56,7 @@ public class Order {
     setItems(items);
   }
 
-  @Builder(builderClassName = "OrderBuilder", builderMethodName = "draftOrderBuilder")
-  private static Order draftOrder(CustomerId customerId) {
+  public static Order createDraftOrder(CustomerId customerId) {
     return new Order(new OrderId(), customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
         OrderStatus.DRAFT, null, null, null, new HashSet<>());
   }
@@ -71,8 +70,25 @@ public class Order {
         .quantity(quantity)
         .build();
     this.items.add(orderItem);
-    this.totalAmount = this.totalAmount.add(orderItem.totalAmount());
-    this.totalItems = this.totalItems.add(orderItem.quantity());
+    this.recalculateTotalItems();
+    this.recalculateTotalAmount();
+  }
+
+  private void recalculateTotalItems() {
+    var totalItems = this.items().stream()
+        .map(OrderItem::quantity)
+        .reduce(Quantity.ZERO, Quantity::add);
+    this.setTotalItems(totalItems);
+  }
+
+  public void recalculateTotalAmount() {
+    var totalAmount = this.items.stream()
+        .map(OrderItem::totalAmount)
+        .reduce(Money.ZERO, Money::add);
+    if (this.shippingCost == null) {
+      this.shippingCost = Money.ZERO;
+    }
+    this.setTotalAmount(totalAmount.add(this.shippingCost));
   }
 
   public OrderId id() {

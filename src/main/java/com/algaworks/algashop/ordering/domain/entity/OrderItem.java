@@ -34,7 +34,9 @@ public class OrderItem {
   @Builder(builderClassName = "DraftOrderItemBuilder", builderMethodName = "draftOrderItemBuilder")
   private static OrderItem draftOrderItem(OrderId orderId, ProductId productId, ProductName productName, Money price,
       Quantity quantity) {
-    return new OrderItem(new OrderItemId(), orderId, productId, productName, price, quantity, Money.ZERO);
+    var orderItem = new OrderItem(new OrderItemId(), orderId, productId, productName, price, quantity, Money.ZERO);
+    orderItem.recalculateTotalIAmount();
+    return orderItem;
   }
 
   public OrderItemId id() {
@@ -63,6 +65,10 @@ public class OrderItem {
 
   public Money totalAmount() {
     return totalAmount;
+  }
+
+  private void recalculateTotalIAmount() {
+    this.totalAmount = this.price().multiply(this.quantity().value().intValue());
   }
 
   private void setId(OrderItemId id) {

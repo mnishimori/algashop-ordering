@@ -373,7 +373,7 @@ class OrderTest {
     assertThat(orderItem.productName()).isEqualTo(productName);
     assertThat(orderItem.price()).isEqualTo(price);
     assertThat(orderItem.quantity()).isEqualTo(quantity);
-    assertThat(orderItem.totalAmount()).isEqualTo(Money.ZERO);
+    assertThat(orderItem.totalAmount()).isEqualTo(new Money("200.00"));
   }
 
   @Test
@@ -387,5 +387,300 @@ class OrderTest {
 
     assertThatThrownBy(() -> order.items().clear())
         .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  @DisplayName("Should create draft order using draftOrderBuilder")
+  void shouldCreateDraftOrderUsingDraftOrderBuilder() {
+    var customerId = new CustomerId(UUID.randomUUID());
+
+    Order order = Order.createDraftOrder(customerId);
+
+    assertThat(order).isNotNull();
+    assertThat(order.id()).isNotNull();
+    assertThat(order.customerId()).isEqualTo(customerId);
+    assertThat(order.totalAmount()).isEqualTo(Money.ZERO);
+    assertThat(order.totalItems()).isEqualTo(Quantity.ZERO);
+    assertThat(order.status()).isEqualTo(OrderStatus.DRAFT);
+    assertThat(order.items()).isEmpty();
+    assertThat(order.placedAt()).isNull();
+    assertThat(order.paidAt()).isNull();
+    assertThat(order.canceledAt()).isNull();
+    assertThat(order.readyAt()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should add multiple order items and recalculate totals")
+  void shouldAddMultipleOrderItemsAndRecalculateTotals() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Notebook Pro"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Mouse Wireless"),
+        new Money("50.00"),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    assertThat(order.items()).hasSize(2);
+    assertThat(order.totalAmount()).isEqualTo(new Money("350.00"));
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount including shipping cost")
+  void shouldRecalculateTotalAmountIncludingShippingCost() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("1"))
+    );
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product B"),
+        new Money("50.00"),
+        new Quantity(new BigDecimal("1"))
+    );
+
+    order.recalculateTotalAmount();
+
+    assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount with shipping cost when items exist")
+  void shouldRecalculateTotalAmountWithShippingCostWhenItemsExist() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.DRAFT)
+        .items(new HashSet<>())
+        .shippingCost(new Money("15.00"))
+        .build();
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("1"))
+    );
+
+    assertThat(order.totalAmount()).isEqualTo(new Money("115.00"));
+  }
+
+  @Test
+  @DisplayName("Should update total items when adding order item")
+  void shouldUpdateTotalItemsWhenAddingOrderItem() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    assertThat(order.totalItems()).isEqualTo(Quantity.ZERO);
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("3")));
+  }
+
+  @Test
+  @DisplayName("Should use shipping cost as ZERO when null during recalculation")
+  void shouldUseShippingCostAsZeroWhenNullDuringRecalculation() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.DRAFT)
+        .items(new HashSet<>())
+        .shippingCost(null)
+        .build();
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("75.00"),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    assertThat(order.shippingCost()).isEqualTo(Money.ZERO);
+    assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
+  }
+
+  @Test
+  @DisplayName("Should return billingInfo")
+  void shouldReturnBillingInfo() {
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY", zipCode);
+    var billingInfo = com.algaworks.algashop.ordering.domain.valueobject.BillingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var order = OrderTestDataBuilder.anOrder().billingInfo(billingInfo).build();
+
+    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+  }
+
+  @Test
+  @DisplayName("Should return shippingInfo")
+  void shouldReturnShippingInfo() {
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY", zipCode);
+    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var order = OrderTestDataBuilder.anOrder().shippingInfo(shippingInfo).build();
+
+    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount when items is empty")
+  void shouldRecalculateTotalAmountWhenItemsIsEmpty() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.DRAFT)
+        .items(new HashSet<>())
+        .shippingCost(new Money("10.00"))
+        .build();
+
+    order.recalculateTotalAmount();
+
+    assertThat(order.totalAmount()).isEqualTo(new Money("10.00"));
+  }
+
+  @Test
+  @DisplayName("Should recalculate total items when items is empty")
+  void shouldRecalculateTotalItemsWhenItemsIsEmpty() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.DRAFT)
+        .items(new HashSet<>())
+        .build();
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("5"))
+    );
+
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
+  }
+
+  @Test
+  @DisplayName("Should add order item to existing order with items")
+  void shouldAddOrderItemToExistingOrderWithItems() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product B"),
+        new Money("50.00"),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    assertThat(order.items()).hasSize(2);
+    assertThat(order.totalAmount()).isEqualTo(new Money("350.00"));
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
+  }
+
+  @Test
+  @DisplayName("Should be equal to itself")
+  void shouldBeEqualToItself() {
+    var order = OrderTestDataBuilder.anOrder().build();
+
+    assertThat(order).isEqualTo(order);
+  }
+
+  @Test
+  @DisplayName("Should have consistent hashCode")
+  void shouldHaveConsistentHashCode() {
+    var order = OrderTestDataBuilder.anOrder().build();
+
+    var hashCode1 = order.hashCode();
+    var hashCode2 = order.hashCode();
+
+    assertThat(hashCode1).isEqualTo(hashCode2);
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount when shipping cost is set after items")
+  void shouldRecalculateTotalAmountWhenShippingCostIsSetAfterItems() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("1"))
+    );
+
+    var orderWithShipping = Order.existingOrderBuilder()
+        .id(order.id())
+        .customerId(order.customerId())
+        .totalAmount(order.totalAmount())
+        .totalItems(order.totalItems())
+        .placedAt(order.placedAt())
+        .paidAt(order.paidAt())
+        .canceledAt(order.canceledAt())
+        .readyAt(order.readyAt())
+        .billingInfo(order.billingInfo())
+        .shippingInfo(order.shippingInfo())
+        .status(order.status())
+        .paymentMethod(order.paymentMethod())
+        .shippingCost(new Money("20.00"))
+        .expectedDeliveryDate(order.expectedDeliveryDate())
+        .items(order.items())
+        .build();
+
+    orderWithShipping.recalculateTotalAmount();
+
+    assertThat(orderWithShipping.totalAmount()).isEqualTo(new Money("120.00"));
+  }
+
+  @Test
+  @DisplayName("Should throw exception when createDraftOrder customerId is null")
+  void shouldThrowExceptionWhenCreateDraftOrderCustomerIdIsNull() {
+    assertThatThrownBy(() -> Order.createDraftOrder(null))
+        .isInstanceOf(NullPointerException.class);
   }
 }
