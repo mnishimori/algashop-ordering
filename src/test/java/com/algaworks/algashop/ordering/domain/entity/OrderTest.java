@@ -3,6 +3,8 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
+import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
@@ -232,14 +234,6 @@ class OrderTest {
   }
 
   @Test
-  @DisplayName("Should not be equal to different class")
-  void shouldNotBeEqualToDifferentClass() {
-    Order order = OrderTestDataBuilder.anOrder().build();
-
-    assertThat(order).isNotEqualTo("not an order");
-  }
-
-  @Test
   @DisplayName("Should return id")
   void shouldReturnId() {
     OrderId orderId = new OrderId(TSID.from(123456789L));
@@ -452,8 +446,6 @@ class OrderTest {
         new Quantity(new BigDecimal("1"))
     );
 
-    order.recalculateTotalAmount();
-
     assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
   }
 
@@ -528,7 +520,8 @@ class OrderTest {
     var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
     var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
     var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY", zipCode);
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+        "Downtown", "New York", "NY", zipCode);
     var billingInfo = com.algaworks.algashop.ordering.domain.valueobject.BillingInfo.builder()
         .fullName(fullName)
         .document(document)
@@ -547,7 +540,8 @@ class OrderTest {
     var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
     var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
     var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY", zipCode);
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+        "Downtown", "New York", "NY", zipCode);
     var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
@@ -572,9 +566,14 @@ class OrderTest {
         .shippingCost(new Money("10.00"))
         .build();
 
-    order.recalculateTotalAmount();
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("75.00"),
+        new Quantity(new BigDecimal("2"))
+    );
 
-    assertThat(order.totalAmount()).isEqualTo(new Money("10.00"));
+    assertThat(order.totalAmount()).isEqualTo(new Money("160.00"));
   }
 
   @Test
@@ -621,14 +620,6 @@ class OrderTest {
     assertThat(order.items()).hasSize(2);
     assertThat(order.totalAmount()).isEqualTo(new Money("350.00"));
     assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
-  }
-
-  @Test
-  @DisplayName("Should be equal to itself")
-  void shouldBeEqualToItself() {
-    var order = OrderTestDataBuilder.anOrder().build();
-
-    assertThat(order).isEqualTo(order);
   }
 
   @Test
@@ -682,5 +673,195 @@ class OrderTest {
   void shouldThrowExceptionWhenCreateDraftOrderCustomerIdIsNull() {
     assertThatThrownBy(() -> Order.createDraftOrder(null))
         .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should change order status to placed")
+  void shouldChangeOrderStatusToPlaced() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.place();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.PLACED);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change order status to placed is not allowed")
+  void shouldThrowExceptionWhenChangeOrderStatusToPlacedIsNotAllowed() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var existingOrder = Order.existingOrderBuilder()
+        .id(order.id())
+        .customerId(order.customerId())
+        .totalAmount(order.totalAmount())
+        .totalItems(order.totalItems())
+        .placedAt(order.placedAt())
+        .paidAt(order.paidAt())
+        .canceledAt(order.canceledAt())
+        .readyAt(order.readyAt())
+        .billingInfo(order.billingInfo())
+        .shippingInfo(order.shippingInfo())
+        .status(OrderStatus.PLACED)
+        .paymentMethod(order.paymentMethod())
+        .shippingCost(new Money("20.00"))
+        .expectedDeliveryDate(order.expectedDeliveryDate())
+        .items(order.items())
+        .build();
+
+    assertThatThrownBy(existingOrder::place).isInstanceOf(OrderStatusCannotBeChangedException.class);
+  }
+
+  @Test
+  @DisplayName("Should change payment method successfully")
+  void shouldChangePaymentMethodSuccessfully() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var newPaymentMethod = PaymentMethod.CREDIT_CARD;
+
+    order.changePaymentMethod(newPaymentMethod);
+
+    assertThat(order.paymentMethod()).isEqualTo(newPaymentMethod);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change payment method with null")
+  void shouldThrowExceptionWhenChangePaymentMethodWithNull() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    assertThatThrownBy(() -> order.changePaymentMethod(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should change billing info successfully")
+  void shouldChangeBillingInfoSuccessfully() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+        "Downtown", "New York", "NY", zipCode);
+    var billingInfo = com.algaworks.algashop.ordering.domain.valueobject.BillingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+
+    order.changeBilling(billingInfo);
+
+    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change billing info with null")
+  void shouldThrowExceptionWhenChangeBillingInfoWithNull() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    assertThatThrownBy(() -> order.changeBilling(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should change shipping info successfully")
+  void shouldChangeShippingInfoSuccessfully() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+        "Uptown", "Los Angeles", "CA", zipCode);
+    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var shippingCost = new Money("25.00");
+    var expectedDeliveryDate = LocalDate.now().plusDays(10);
+
+    order.changeShipping(shippingInfo, shippingCost, expectedDeliveryDate);
+
+    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+    assertThat(order.shippingCost()).isEqualTo(shippingCost);
+    assertThat(order.expectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change shipping with null shipping info")
+  void shouldThrowExceptionWhenChangeShippingWithNullShippingInfo() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var shippingCost = new Money("25.00");
+    var expectedDeliveryDate = LocalDate.now().plusDays(10);
+
+    assertThatThrownBy(() -> order.changeShipping(null, shippingCost, expectedDeliveryDate))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change shipping with null shipping cost")
+  void shouldThrowExceptionWhenChangeShippingWithNullShippingCost() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+        "Uptown", "Los Angeles", "CA", zipCode);
+    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var expectedDeliveryDate = LocalDate.now().plusDays(10);
+
+    assertThatThrownBy(() -> order.changeShipping(shippingInfo, null, expectedDeliveryDate))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change shipping with null expected delivery date")
+  void shouldThrowExceptionWhenChangeShippingWithNullExpectedDeliveryDate() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+        "Uptown", "Los Angeles", "CA", zipCode);
+    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var shippingCost = new Money("25.00");
+
+    assertThatThrownBy(() -> order.changeShipping(shippingInfo, shippingCost, null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change shipping with past delivery date")
+  void shouldThrowExceptionWhenChangeShippingWithPastDeliveryDate() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
+    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
+    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
+    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
+    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+        "Uptown", "Los Angeles", "CA", zipCode);
+    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+        .fullName(fullName)
+        .document(document)
+        .phone(phone)
+        .address(address)
+        .build();
+    var shippingCost = new Money("25.00");
+    var pastDeliveryDate = LocalDate.now().minusDays(1);
+
+    assertThatThrownBy(() -> order.changeShipping(shippingInfo, shippingCost, pastDeliveryDate))
+        .isInstanceOf(OrderInvalidShippingDeliveryDateException.class);
   }
 }

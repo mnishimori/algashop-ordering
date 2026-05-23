@@ -1,5 +1,7 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
+import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
 import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
@@ -74,11 +76,39 @@ public class Order {
     this.recalculateTotalAmount();
   }
 
-  private void recalculateTotalItems() {
-    var totalItems = this.items().stream()
-        .map(OrderItem::quantity)
-        .reduce(Quantity.ZERO, Quantity::add);
-    this.setTotalItems(totalItems);
+  public void place() {
+    changeStatus(OrderStatus.PLACED);
+    this.setPlacedAt(OffsetDateTime.now());
+  }
+
+  public void changePaymentMethod(PaymentMethod paymentMethod) {
+    Objects.requireNonNull(paymentMethod);
+    this.setPaymentMethod(paymentMethod);
+  }
+
+  public void changeBilling(BillingInfo billingInfo) {
+    Objects.requireNonNull(billingInfo);
+    this.setBillingInfo(billingInfo);
+  }
+
+  public void changeShipping(ShippingInfo shippingInfo, Money shippingCost, LocalDate expectedDeliveryDate) {
+    Objects.requireNonNull(shippingInfo);
+    Objects.requireNonNull(shippingCost);
+    Objects.requireNonNull(expectedDeliveryDate);
+    if (expectedDeliveryDate.isBefore(LocalDate.now())) {
+      throw new OrderInvalidShippingDeliveryDateException(this.id(), expectedDeliveryDate);
+    }
+    this.setShippingInfo(shippingInfo);
+    this.setShippingCost(shippingCost);
+    this.setExpectedDeliveryDate(expectedDeliveryDate);
+  }
+
+  public boolean isDraft() {
+    return OrderStatus.DRAFT.equals(this.status);
+  }
+
+  public boolean isPlaced() {
+    return OrderStatus.PLACED.equals(this.status);
   }
 
   public void recalculateTotalAmount() {
@@ -89,6 +119,20 @@ public class Order {
       this.shippingCost = Money.ZERO;
     }
     this.setTotalAmount(totalAmount.add(this.shippingCost));
+  }
+
+  private void changeStatus(OrderStatus orderStatus) {
+    if (this.status().canNotChangeTo(orderStatus)) {
+      throw new OrderStatusCannotBeChangedException(this.id(), this.status(), orderStatus);
+    }
+    this.setStatus(orderStatus);
+  }
+
+  private void recalculateTotalItems() {
+    var totalItems = this.items().stream()
+        .map(OrderItem::quantity)
+        .reduce(Quantity.ZERO, Quantity::add);
+    this.setTotalItems(totalItems);
   }
 
   public OrderId id() {
