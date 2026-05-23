@@ -5,9 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
+import com.algaworks.algashop.ordering.domain.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.Document;
+import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.valueobject.Phone;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
@@ -516,13 +523,13 @@ class OrderTest {
   @Test
   @DisplayName("Should return billingInfo")
   void shouldReturnBillingInfo() {
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+    var fullName = new FullName("John", "Doe");
+    var document = new Document("12345678900");
+    var phone = new Phone("11999999999");
+    var zipCode = new ZipCode("12345-678");
+    var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var billingInfo = com.algaworks.algashop.ordering.domain.valueobject.BillingInfo.builder()
+    var billingInfo = BillingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -536,13 +543,13 @@ class OrderTest {
   @Test
   @DisplayName("Should return shippingInfo")
   void shouldReturnShippingInfo() {
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+    var fullName = new FullName("John", "Doe");
+    var document = new Document("12345678900");
+    var phone = new Phone("11999999999");
+    var zipCode = new ZipCode("12345-678");
+    var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+    var shippingInfo = ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -734,13 +741,13 @@ class OrderTest {
   @DisplayName("Should change billing info successfully")
   void shouldChangeBillingInfoSuccessfully() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("John", "Doe");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("12345678900");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11999999999");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("12345-678");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Main Street", "123", "Apt 1",
+    var fullName = new FullName("John", "Doe");
+    var document = new Document("12345678900");
+    var phone = new Phone("11999999999");
+    var zipCode = new ZipCode("12345-678");
+    var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var billingInfo = com.algaworks.algashop.ordering.domain.valueobject.BillingInfo.builder()
+    var billingInfo = BillingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -765,13 +772,13 @@ class OrderTest {
   @DisplayName("Should change shipping info successfully")
   void shouldChangeShippingInfoSuccessfully() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+    var fullName = new FullName("Jane", "Smith");
+    var document = new Document("98765432100");
+    var phone = new Phone("11888888888");
+    var zipCode = new ZipCode("87654-321");
+    var address = new Address("Second Street", "456", "Apt 2",
         "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+    var shippingInfo = ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -802,13 +809,13 @@ class OrderTest {
   @DisplayName("Should throw exception when change shipping with null shipping cost")
   void shouldThrowExceptionWhenChangeShippingWithNullShippingCost() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+    var fullName = new FullName("Jane", "Smith");
+    var document = new Document("98765432100");
+    var phone = new Phone("11888888888");
+    var zipCode = new ZipCode("87654-321");
+    var address = new Address("Second Street", "456", "Apt 2",
         "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+    var shippingInfo = ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -824,13 +831,13 @@ class OrderTest {
   @DisplayName("Should throw exception when change shipping with null expected delivery date")
   void shouldThrowExceptionWhenChangeShippingWithNullExpectedDeliveryDate() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+    var fullName = new FullName("Jane", "Smith");
+    var document = new Document("98765432100");
+    var phone = new Phone("11888888888");
+    var zipCode = new ZipCode("87654-321");
+    var address = new Address("Second Street", "456", "Apt 2",
         "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+    var shippingInfo = ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
@@ -846,13 +853,13 @@ class OrderTest {
   @DisplayName("Should throw exception when change shipping with past delivery date")
   void shouldThrowExceptionWhenChangeShippingWithPastDeliveryDate() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var fullName = new com.algaworks.algashop.ordering.domain.valueobject.FullName("Jane", "Smith");
-    var document = new com.algaworks.algashop.ordering.domain.valueobject.Document("98765432100");
-    var phone = new com.algaworks.algashop.ordering.domain.valueobject.Phone("11888888888");
-    var zipCode = new com.algaworks.algashop.ordering.domain.valueobject.ZipCode("87654-321");
-    var address = new com.algaworks.algashop.ordering.domain.valueobject.Address("Second Street", "456", "Apt 2",
+    var fullName = new FullName("Jane", "Smith");
+    var document = new Document("98765432100");
+    var phone = new Phone("11888888888");
+    var zipCode = new ZipCode("87654-321");
+    var address = new Address("Second Street", "456", "Apt 2",
         "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo.builder()
+    var shippingInfo = ShippingInfo.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)

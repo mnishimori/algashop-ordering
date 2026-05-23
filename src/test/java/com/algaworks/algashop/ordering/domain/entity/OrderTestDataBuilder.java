@@ -7,10 +7,9 @@ import com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
 import io.hypersistence.tsid.TSID;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,7 +46,7 @@ public class OrderTestDataBuilder {
     this.paymentMethod = null;
     this.shippingCost = Money.ZERO;
     this.expectedDeliveryDate = LocalDate.now().plusDays(7);
-    this.items = new HashSet<>();
+    this.items = new LinkedHashSet<>();
   }
 
   public static OrderTestDataBuilder anOrder() {

@@ -13,7 +13,7 @@ import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
@@ -60,7 +60,7 @@ public class Order {
 
   public static Order createDraftOrder(CustomerId customerId) {
     return new Order(new OrderId(), customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
-        OrderStatus.DRAFT, null, null, null, new HashSet<>());
+        OrderStatus.DRAFT, null, null, null, new LinkedHashSet<>());
   }
 
   public void addOrderItem(ProductId productId, ProductName productName, Money price, Quantity quantity) {
