@@ -75,7 +75,7 @@ public class Customer {
     this.setArchived(true);
     this.setArchivedAt(OffsetDateTime.now());
     this.setFullName(new FullName("Anounymous", "Anounymous"));
-    this.setEmail(UUID.randomUUID().toString() + "@anonymous.com");
+    this.setEmail(UUID.randomUUID() + "@anonymous.com");
     this.setPhone("0000-0000");
     this.setDocument("00000000000");
     this.setBirthDate(null);

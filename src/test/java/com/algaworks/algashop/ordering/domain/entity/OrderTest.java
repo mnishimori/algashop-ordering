@@ -3,8 +3,8 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
-import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
 import com.algaworks.algashop.ordering.domain.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
 import com.algaworks.algashop.ordering.domain.valueobject.Document;
@@ -687,6 +687,42 @@ class OrderTest {
   void shouldChangeOrderStatusToPlaced() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
+    order.addOrderItem(
+        new ProductId(UUID.randomUUID()),
+        new ProductName("Product A"),
+        new Money("100.00"),
+        new Quantity(new BigDecimal("1"))
+    );
+    order.changePaymentMethod(PaymentMethod.CREDIT_CARD);
+    order.changeBilling(BillingInfo.builder()
+        .fullName(new FullName("John", "Doe"))
+        .document(new Document("12345678900"))
+        .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Rua Teste")
+            .number("123")
+            .neighborhood("Centro")
+            .city("São Paulo")
+            .state("SP")
+            .zipCode(new ZipCode("01234-567"))
+            .build())
+        .build());
+    order.changeShipping(ShippingInfo.builder()
+        .fullName(new FullName("John", "Doe"))
+        .document(new Document("12345678900"))
+        .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Rua Teste")
+            .number("123")
+            .neighborhood("Centro")
+            .city("São Paulo")
+            .state("SP")
+            .zipCode(new ZipCode("01234-567"))
+            .build())
+        .build(),
+        new Money("10.00"),
+        LocalDate.now().plusDays(7));
+
     order.place();
 
     assertThat(order.status()).isEqualTo(OrderStatus.PLACED);
@@ -714,7 +750,7 @@ class OrderTest {
         .items(order.items())
         .build();
 
-    assertThatThrownBy(existingOrder::place).isInstanceOf(OrderStatusCannotBeChangedException.class);
+    assertThatThrownBy(existingOrder::place).isInstanceOf(OrderCannotBePlacedException.class);
   }
 
   @Test

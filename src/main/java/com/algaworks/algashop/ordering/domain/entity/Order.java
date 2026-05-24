@@ -1,5 +1,6 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
 import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
@@ -77,8 +78,24 @@ public class Order {
   }
 
   public void place() {
+    this.verifyIfCanChangeToPlaced();
     changeStatus(OrderStatus.PLACED);
     this.setPlacedAt(OffsetDateTime.now());
+  }
+
+  private void verifyIfCanChangeToPlaced() {
+    if (this.shippingInfo() == null) {
+      throw OrderCannotBePlacedException.noShippingInfo(this.id());
+    }
+    if (this.billingInfo() == null) {
+      throw OrderCannotBePlacedException.noBillingInfo(this.id());
+    }
+    if (this.paymentMethod() == null) {
+      throw OrderCannotBePlacedException.noPaymentMethod(this.id());
+    }
+    if (this.items() == null || this.items().isEmpty()) {
+      throw OrderCannotBePlacedException.noItems(this.id());
+    }
   }
 
   public void changePaymentMethod(PaymentMethod paymentMethod) {
