@@ -6,18 +6,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class BillingInfoTest {
+class BillingTest {
 
   private static final FullName FULL_NAME = new FullName("John", "Doe");
   private static final Document DOCUMENT = new Document("12345678900");
   private static final Phone PHONE = new Phone("11999999999");
   private static final ZipCode ZIP_CODE = new ZipCode("12345-678");
-  private static final Address ADDRESS = new Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY", ZIP_CODE);
+  private static final Address ADDRESS = new Address("Main Street", "123", "Apt 1", "Downtown", "New York", "NY",
+      ZIP_CODE);
+  private static final Email EMAIL = new Email("john.doe@example.com");
 
   @Test
   @DisplayName("Should create BillingInfo with all valid components")
   void shouldCreateBillingInfoWithAllValidComponents() {
-    var billingInfo = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
 
     assertThat(billingInfo.fullName()).isEqualTo(FULL_NAME);
     assertThat(billingInfo.document()).isEqualTo(DOCUMENT);
@@ -28,11 +30,12 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should create BillingInfo using builder")
   void shouldCreateBillingInfoUsingBuilder() {
-    var billingInfo = BillingInfo.builder()
+    var billingInfo = Billing.builder()
         .fullName(FULL_NAME)
         .document(DOCUMENT)
         .phone(PHONE)
         .address(ADDRESS)
+        .email(EMAIL)
         .build();
 
     assertThat(billingInfo.fullName()).isEqualTo(FULL_NAME);
@@ -44,36 +47,38 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should throw NullPointerException when fullName is null")
   void shouldThrowNullPointerExceptionWhenFullNameIsNull() {
-    assertThatThrownBy(() -> new BillingInfo(null, DOCUMENT, PHONE, ADDRESS))
+    assertThatThrownBy(() -> Billing.builder().fullName(null).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build())
         .isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw NullPointerException when document is null")
   void shouldThrowNullPointerExceptionWhenDocumentIsNull() {
-    assertThatThrownBy(() -> new BillingInfo(FULL_NAME, null, PHONE, ADDRESS))
+    assertThatThrownBy(() -> Billing.builder().fullName(FULL_NAME).document(null).phone(PHONE).address(ADDRESS).email(EMAIL).build())
         .isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw NullPointerException when phone is null")
   void shouldThrowNullPointerExceptionWhenPhoneIsNull() {
-    assertThatThrownBy(() -> new BillingInfo(FULL_NAME, DOCUMENT, null, ADDRESS))
+    assertThatThrownBy(
+        () -> Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(null).address(ADDRESS).email(EMAIL).build())
         .isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should throw NullPointerException when address is null")
   void shouldThrowNullPointerExceptionWhenAddressIsNull() {
-    assertThatThrownBy(() -> new BillingInfo(FULL_NAME, DOCUMENT, PHONE, null))
+    assertThatThrownBy(
+        () -> Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(null).email(EMAIL).build())
         .isInstanceOf(NullPointerException.class);
   }
 
   @Test
   @DisplayName("Should be equal when same components")
   void shouldBeEqualWhenSameComponents() {
-    var billingInfo1 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
-    var billingInfo2 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo1 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
+    var billingInfo2 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
 
     assertThat(billingInfo1).isEqualTo(billingInfo2);
     assertThat(billingInfo1.hashCode()).isEqualTo(billingInfo2.hashCode());
@@ -82,9 +87,10 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal when different fullName")
   void shouldNotBeEqualWhenDifferentFullName() {
-    var billingInfo1 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo1 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
     var differentName = new FullName("Jane", "Smith");
-    var billingInfo2 = new BillingInfo(differentName, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo2 = Billing.builder().fullName(differentName).document(DOCUMENT).phone(PHONE).address(ADDRESS)
+        .email(EMAIL).build();
 
     assertThat(billingInfo1).isNotEqualTo(billingInfo2);
   }
@@ -92,9 +98,10 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal when different document")
   void shouldNotBeEqualWhenDifferentDocument() {
-    var billingInfo1 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo1 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
     var differentDocument = new Document("98765432100");
-    var billingInfo2 = new BillingInfo(FULL_NAME, differentDocument, PHONE, ADDRESS);
+    var billingInfo2 = Billing.builder().fullName(FULL_NAME).document(differentDocument).phone(PHONE).address(ADDRESS)
+        .email(EMAIL).build();
 
     assertThat(billingInfo1).isNotEqualTo(billingInfo2);
   }
@@ -102,9 +109,10 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal when different phone")
   void shouldNotBeEqualWhenDifferentPhone() {
-    var billingInfo1 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo1 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
     var differentPhone = new Phone("11888888888");
-    var billingInfo2 = new BillingInfo(FULL_NAME, DOCUMENT, differentPhone, ADDRESS);
+    var billingInfo2 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(differentPhone).address(ADDRESS)
+        .email(EMAIL).build();
 
     assertThat(billingInfo1).isNotEqualTo(billingInfo2);
   }
@@ -112,10 +120,11 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal when different address")
   void shouldNotBeEqualWhenDifferentAddress() {
-    var billingInfo1 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo1 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
     var differentZipCode = new ZipCode("54321-876");
     var differentAddress = new Address("Second Street", "456", null, "Uptown", "Los Angeles", "CA", differentZipCode);
-    var billingInfo2 = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, differentAddress);
+    var billingInfo2 = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(differentAddress)
+        .email(EMAIL).build();
 
     assertThat(billingInfo1).isNotEqualTo(billingInfo2);
   }
@@ -123,7 +132,7 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal to null")
   void shouldNotBeEqualToNull() {
-    var billingInfo = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
 
     assertThat(billingInfo).isNotEqualTo(null);
   }
@@ -131,7 +140,7 @@ class BillingInfoTest {
   @Test
   @DisplayName("Should not be equal to different type")
   void shouldNotBeEqualToDifferentType() {
-    var billingInfo = new BillingInfo(FULL_NAME, DOCUMENT, PHONE, ADDRESS);
+    var billingInfo = Billing.builder().fullName(FULL_NAME).document(DOCUMENT).phone(PHONE).address(ADDRESS).email(EMAIL).build();
 
     assertThat(billingInfo).isNotEqualTo("not a billing info");
   }

@@ -1,13 +1,12 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
-import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.Billing;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.Shipping;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
 import io.hypersistence.tsid.TSID;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -23,12 +22,10 @@ public class OrderTestDataBuilder {
   private OffsetDateTime paidAt;
   private OffsetDateTime canceledAt;
   private OffsetDateTime readyAt;
-  private BillingInfo billingInfo;
-  private ShippingInfo shippingInfo;
+  private Billing billing;
+  private Shipping shipping;
   private OrderStatus status;
   private PaymentMethod paymentMethod;
-  private Money shippingCost;
-  private LocalDate expectedDeliveryDate;
   private Set<OrderItem> items;
 
   private OrderTestDataBuilder() {
@@ -40,12 +37,10 @@ public class OrderTestDataBuilder {
     this.paidAt = null;
     this.canceledAt = null;
     this.readyAt = null;
-    this.billingInfo = null;
-    this.shippingInfo = null;
+    this.billing = null;
+    this.shipping = null;
     this.status = OrderStatus.DRAFT;
     this.paymentMethod = null;
-    this.shippingCost = Money.ZERO;
-    this.expectedDeliveryDate = LocalDate.now().plusDays(7);
     this.items = new LinkedHashSet<>();
   }
 
@@ -93,13 +88,13 @@ public class OrderTestDataBuilder {
     return this;
   }
 
-  public OrderTestDataBuilder billingInfo(BillingInfo billingInfo) {
-    this.billingInfo = billingInfo;
+  public OrderTestDataBuilder billingInfo(Billing billing) {
+    this.billing = billing;
     return this;
   }
 
-  public OrderTestDataBuilder shippingInfo(ShippingInfo shippingInfo) {
-    this.shippingInfo = shippingInfo;
+  public OrderTestDataBuilder shippingInfo(Shipping shipping) {
+    this.shipping = shipping;
     return this;
   }
 
@@ -113,16 +108,6 @@ public class OrderTestDataBuilder {
     return this;
   }
 
-  public OrderTestDataBuilder shippingCost(Money shippingCost) {
-    this.shippingCost = shippingCost;
-    return this;
-  }
-
-  public OrderTestDataBuilder expectedDeliveryDate(LocalDate expectedDeliveryDate) {
-    this.expectedDeliveryDate = expectedDeliveryDate;
-    return this;
-  }
-
   public OrderTestDataBuilder items(Set<OrderItem> items) {
     this.items = items;
     return this;
@@ -130,6 +115,6 @@ public class OrderTestDataBuilder {
 
   public Order build() {
     return new Order(id, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt, readyAt,
-        billingInfo, shippingInfo, status, paymentMethod, shippingCost, expectedDeliveryDate, items);
+        billing, shipping, status, paymentMethod, items);
   }
 }

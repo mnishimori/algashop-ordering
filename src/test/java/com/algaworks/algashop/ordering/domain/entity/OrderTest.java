@@ -6,18 +6,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.valueobject.BillingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.Billing;
 import com.algaworks.algashop.ordering.domain.valueobject.Document;
+import com.algaworks.algashop.ordering.domain.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.Phone;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.ShippingInfo;
+import com.algaworks.algashop.ordering.domain.valueobject.Recepient;
+import com.algaworks.algashop.ordering.domain.valueobject.Shipping;
 import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
+import com.algaworks.algashop.ordering.domain.valueobject.id.OrderItemId;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,12 +45,10 @@ class OrderTest {
     OffsetDateTime readyAt = null;
     OrderStatus status = OrderStatus.PLACED;
     PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
-    Money shippingCost = new Money("10.00");
-    LocalDate expectedDeliveryDate = LocalDate.now().plusDays(7);
     Set<OrderItem> items = new HashSet<>();
 
     Order order = new Order(orderId, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt,
-        readyAt, null, null, status, paymentMethod, shippingCost, expectedDeliveryDate, items);
+        readyAt, null, null, status, paymentMethod, items);
 
     assertThat(order.id()).isEqualTo(orderId);
     assertThat(order.customerId()).isEqualTo(customerId);
@@ -60,8 +60,6 @@ class OrderTest {
     assertThat(order.readyAt()).isNull();
     assertThat(order.status()).isEqualTo(status);
     assertThat(order.paymentMethod()).isEqualTo(paymentMethod);
-    assertThat(order.shippingCost()).isEqualTo(shippingCost);
-    assertThat(order.expectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
     assertThat(order.items()).isEqualTo(items);
   }
 
@@ -88,7 +86,7 @@ class OrderTest {
     Set<OrderItem> items = new HashSet<>();
 
     Order order = new Order(orderId, customerId, totalAmount, totalItems, null, null, null, null, null, null,
-        OrderStatus.DRAFT, null, null, null, items);
+        OrderStatus.DRAFT, null, items);
 
     assertThat(order.id()).isNotNull();
     assertThat(order.id().value()).isNotNull();
@@ -190,22 +188,6 @@ class OrderTest {
     Order order = OrderTestDataBuilder.anOrder().paymentMethod(null).build();
 
     assertThat(order.paymentMethod()).isNull();
-  }
-
-  @Test
-  @DisplayName("Should allow null shippingCost")
-  void shouldAllowNullShippingCost() {
-    Order order = OrderTestDataBuilder.anOrder().shippingCost(null).build();
-
-    assertThat(order.shippingCost()).isNull();
-  }
-
-  @Test
-  @DisplayName("Should allow null expectedDeliveryDate")
-  void shouldAllowNullExpectedDeliveryDate() {
-    Order order = OrderTestDataBuilder.anOrder().expectedDeliveryDate(null).build();
-
-    assertThat(order.expectedDeliveryDate()).isNull();
   }
 
   @Test
@@ -329,24 +311,6 @@ class OrderTest {
   }
 
   @Test
-  @DisplayName("Should return shippingCost")
-  void shouldReturnShippingCost() {
-    Money shippingCost = new Money("25.00");
-    Order order = OrderTestDataBuilder.anOrder().shippingCost(shippingCost).build();
-
-    assertThat(order.shippingCost()).isEqualTo(shippingCost);
-  }
-
-  @Test
-  @DisplayName("Should return expectedDeliveryDate")
-  void shouldReturnExpectedDeliveryDate() {
-    LocalDate expectedDeliveryDate = LocalDate.now().plusDays(14);
-    Order order = OrderTestDataBuilder.anOrder().expectedDeliveryDate(expectedDeliveryDate).build();
-
-    assertThat(order.expectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
-  }
-
-  @Test
   @DisplayName("Should return items")
   void shouldReturnItems() {
     Set<OrderItem> items = new HashSet<>();
@@ -359,20 +323,22 @@ class OrderTest {
   @DisplayName("Should add order item successfully")
   void shouldAddOrderItemSuccessfully() {
     var order = OrderTestDataBuilder.anOrder().customerId(new CustomerId(UUID.randomUUID())).build();
-    var productId = new ProductId(UUID.randomUUID());
-    var productName = new ProductName("Notebook Pro");
-    var price = new Money("100.00");
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Notebook Pro"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
     var quantity = new Quantity(new BigDecimal("2"));
 
-    order.addOrderItem(productId, productName, price, quantity);
+    order.addOrderItem(product, quantity);
 
     assertThat(order.items()).hasSize(1);
     var orderItem = order.items().iterator().next();
     assertThat(orderItem.id()).isNotNull();
     assertThat(orderItem.orderId()).isEqualTo(order.id());
-    assertThat(orderItem.productId()).isEqualTo(productId);
-    assertThat(orderItem.productName()).isEqualTo(productName);
-    assertThat(orderItem.price()).isEqualTo(price);
+    assertThat(orderItem.productId()).isEqualTo(product.id());
+    assertThat(orderItem.productName()).isEqualTo(product.name());
+    assertThat(orderItem.price()).isEqualTo(product.price());
     assertThat(orderItem.quantity()).isEqualTo(quantity);
     assertThat(orderItem.totalAmount()).isEqualTo(new Money("200.00"));
   }
@@ -380,11 +346,13 @@ class OrderTest {
   @Test
   void shouldThrowExceptionWhenTryToChangeOrderItem() {
     var order = OrderTestDataBuilder.anOrder().customerId(new CustomerId(UUID.randomUUID())).build();
-    var productId = new ProductId(UUID.randomUUID());
-    var productName = new ProductName("Notebook Pro");
-    var price = new Money("100.00");
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Notebook Pro"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
     var quantity = new Quantity(new BigDecimal("2"));
-    order.addOrderItem(productId, productName, price, quantity);
+    order.addOrderItem(product, quantity);
 
     assertThatThrownBy(() -> order.items().clear())
         .isInstanceOf(UnsupportedOperationException.class);
@@ -416,16 +384,20 @@ class OrderTest {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Notebook Pro"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Notebook Pro"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("2"))
     );
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Mouse Wireless"),
-        new Money("50.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Mouse Wireless"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("3"))
     );
 
@@ -440,16 +412,20 @@ class OrderTest {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("1"))
     );
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product B"),
-        new Money("50.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product B"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("1"))
     );
 
@@ -466,17 +442,18 @@ class OrderTest {
         .totalItems(Quantity.ZERO)
         .status(OrderStatus.DRAFT)
         .items(new HashSet<>())
-        .shippingCost(new Money("15.00"))
         .build();
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("1"))
     );
 
-    assertThat(order.totalAmount()).isEqualTo(new Money("115.00"));
+    assertThat(order.totalAmount()).isEqualTo(new Money("100.00"));
   }
 
   @Test
@@ -487,9 +464,11 @@ class OrderTest {
     assertThat(order.totalItems()).isEqualTo(Quantity.ZERO);
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("3"))
     );
 
@@ -506,17 +485,17 @@ class OrderTest {
         .totalItems(Quantity.ZERO)
         .status(OrderStatus.DRAFT)
         .items(new HashSet<>())
-        .shippingCost(null)
         .build();
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("75.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("75.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("2"))
     );
 
-    assertThat(order.shippingCost()).isEqualTo(Money.ZERO);
     assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
   }
 
@@ -529,11 +508,13 @@ class OrderTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var billingInfo = BillingInfo.builder()
+    var email = new Email("john.doe@example.com");
+    var billingInfo = Billing.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
         .address(address)
+        .email(email)
         .build();
     var order = OrderTestDataBuilder.anOrder().billingInfo(billingInfo).build();
 
@@ -549,10 +530,11 @@ class OrderTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var shippingInfo = ShippingInfo.builder()
-        .fullName(fullName)
-        .document(document)
-        .phone(phone)
+    var recepient = new Recepient(fullName, document, phone);
+    var shippingInfo = Shipping.builder()
+        .shippingCost(new Money("25.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(10))
+        .recepient(recepient)
         .address(address)
         .build();
     var order = OrderTestDataBuilder.anOrder().shippingInfo(shippingInfo).build();
@@ -570,17 +552,18 @@ class OrderTest {
         .totalItems(Quantity.ZERO)
         .status(OrderStatus.DRAFT)
         .items(new HashSet<>())
-        .shippingCost(new Money("10.00"))
         .build();
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("75.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("75.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("2"))
     );
 
-    assertThat(order.totalAmount()).isEqualTo(new Money("160.00"));
+    assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
   }
 
   @Test
@@ -596,9 +579,11 @@ class OrderTest {
         .build();
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("5"))
     );
 
@@ -611,16 +596,20 @@ class OrderTest {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("2"))
     );
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product B"),
-        new Money("50.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product B"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("3"))
     );
 
@@ -646,9 +635,11 @@ class OrderTest {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("1"))
     );
 
@@ -661,18 +652,16 @@ class OrderTest {
         .paidAt(order.paidAt())
         .canceledAt(order.canceledAt())
         .readyAt(order.readyAt())
-        .billingInfo(order.billingInfo())
-        .shippingInfo(order.shippingInfo())
+        .billing(order.billingInfo())
+        .shipping(order.shippingInfo())
         .status(order.status())
         .paymentMethod(order.paymentMethod())
-        .shippingCost(new Money("20.00"))
-        .expectedDeliveryDate(order.expectedDeliveryDate())
         .items(order.items())
         .build();
 
     orderWithShipping.recalculateTotalAmount();
 
-    assertThat(orderWithShipping.totalAmount()).isEqualTo(new Money("120.00"));
+    assertThat(orderWithShipping.totalAmount()).isEqualTo(new Money("100.00"));
   }
 
   @Test
@@ -688,16 +677,35 @@ class OrderTest {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     order.addOrderItem(
-        new ProductId(UUID.randomUUID()),
-        new ProductName("Product A"),
-        new Money("100.00"),
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
         new Quantity(new BigDecimal("1"))
     );
     order.changePaymentMethod(PaymentMethod.CREDIT_CARD);
-    order.changeBilling(BillingInfo.builder()
+    order.changeBilling(Billing.builder()
         .fullName(new FullName("John", "Doe"))
         .document(new Document("12345678900"))
         .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Rua Teste")
+            .number("123")
+            .neighborhood("Centro")
+            .city("São Paulo")
+            .state("SP")
+            .zipCode(new ZipCode("01234-567"))
+            .build())
+        .email(new Email("john.doe@example.com"))
+        .build());
+    order.changeShipping(Shipping.builder()
+        .shippingCost(new Money("10.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(7))
+        .recepient(new Recepient(
+            new FullName("John", "Doe"),
+            new Document("12345678900"),
+            new Phone("11999999999")))
         .address(Address.builder()
             .street("Rua Teste")
             .number("123")
@@ -707,21 +715,6 @@ class OrderTest {
             .zipCode(new ZipCode("01234-567"))
             .build())
         .build());
-    order.changeShipping(ShippingInfo.builder()
-        .fullName(new FullName("John", "Doe"))
-        .document(new Document("12345678900"))
-        .phone(new Phone("11999999999"))
-        .address(Address.builder()
-            .street("Rua Teste")
-            .number("123")
-            .neighborhood("Centro")
-            .city("São Paulo")
-            .state("SP")
-            .zipCode(new ZipCode("01234-567"))
-            .build())
-        .build(),
-        new Money("10.00"),
-        LocalDate.now().plusDays(7));
 
     order.place();
 
@@ -741,12 +734,10 @@ class OrderTest {
         .paidAt(order.paidAt())
         .canceledAt(order.canceledAt())
         .readyAt(order.readyAt())
-        .billingInfo(order.billingInfo())
-        .shippingInfo(order.shippingInfo())
+        .billing(order.billingInfo())
+        .shipping(order.shippingInfo())
         .status(OrderStatus.PLACED)
         .paymentMethod(order.paymentMethod())
-        .shippingCost(new Money("20.00"))
-        .expectedDeliveryDate(order.expectedDeliveryDate())
         .items(order.items())
         .build();
 
@@ -783,11 +774,13 @@ class OrderTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var billingInfo = BillingInfo.builder()
+    var email = new Email("john.doe@example.com");
+    var billingInfo = Billing.builder()
         .fullName(fullName)
         .document(document)
         .phone(phone)
         .address(address)
+        .email(email)
         .build();
 
     order.changeBilling(billingInfo);
@@ -811,33 +804,28 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var zipCode = new ZipCode("87654-321");
-    var address = new Address("Second Street", "456", "Apt 2",
-        "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = ShippingInfo.builder()
-        .fullName(fullName)
-        .document(document)
-        .phone(phone)
+    var zipCode = new ZipCode("12345-678");
+    var address = new Address("Main Street", "123", "Apt 1",
+        "Downtown", "New York", "NY", zipCode);
+    var recepient = new Recepient(fullName, document, phone);
+    var shippingInfo = Shipping.builder()
+        .shippingCost(new Money("25.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(10))
+        .recepient(recepient)
         .address(address)
         .build();
-    var shippingCost = new Money("25.00");
-    var expectedDeliveryDate = LocalDate.now().plusDays(10);
 
-    order.changeShipping(shippingInfo, shippingCost, expectedDeliveryDate);
+    order.changeShipping(shippingInfo);
 
     assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
-    assertThat(order.shippingCost()).isEqualTo(shippingCost);
-    assertThat(order.expectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
   }
 
   @Test
   @DisplayName("Should throw exception when change shipping with null shipping info")
   void shouldThrowExceptionWhenChangeShippingWithNullShippingInfo() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
-    var shippingCost = new Money("25.00");
-    var expectedDeliveryDate = LocalDate.now().plusDays(10);
 
-    assertThatThrownBy(() -> order.changeShipping(null, shippingCost, expectedDeliveryDate))
+    assertThatThrownBy(() -> order.changeShipping(null))
         .isInstanceOf(NullPointerException.class);
   }
 
@@ -848,19 +836,20 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var zipCode = new ZipCode("87654-321");
-    var address = new Address("Second Street", "456", "Apt 2",
-        "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = ShippingInfo.builder()
-        .fullName(fullName)
-        .document(document)
-        .phone(phone)
-        .address(address)
-        .build();
-    var expectedDeliveryDate = LocalDate.now().plusDays(10);
+    var recepient = new Recepient(fullName, document, phone);
 
-    assertThatThrownBy(() -> order.changeShipping(shippingInfo, null, expectedDeliveryDate))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> {
+      var zipCode = new ZipCode("12345-678");
+      var address = new Address("Main Street", "123", "Apt 1",
+          "Downtown", "New York", "NY", zipCode);
+      var shippingInfo = Shipping.builder()
+          .shippingCost(null)
+          .expectedDeliveryDate(LocalDate.now().plusDays(10))
+          .recepient(recepient)
+          .address(address)
+          .build();
+      order.changeShipping(shippingInfo);
+    }).isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -870,19 +859,20 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var zipCode = new ZipCode("87654-321");
-    var address = new Address("Second Street", "456", "Apt 2",
-        "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = ShippingInfo.builder()
-        .fullName(fullName)
-        .document(document)
-        .phone(phone)
-        .address(address)
-        .build();
-    var shippingCost = new Money("25.00");
+    var recepient = new Recepient(fullName, document, phone);
 
-    assertThatThrownBy(() -> order.changeShipping(shippingInfo, shippingCost, null))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> {
+      var zipCode = new ZipCode("12345-678");
+      var address = new Address("Main Street", "123", "Apt 1",
+          "Downtown", "New York", "NY", zipCode);
+      var shippingInfo = Shipping.builder()
+          .shippingCost(new Money("25.00"))
+          .expectedDeliveryDate(null)
+          .recepient(recepient)
+          .address(address)
+          .build();
+      order.changeShipping(shippingInfo);
+    }).isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -892,19 +882,112 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var zipCode = new ZipCode("87654-321");
-    var address = new Address("Second Street", "456", "Apt 2",
-        "Uptown", "Los Angeles", "CA", zipCode);
-    var shippingInfo = ShippingInfo.builder()
-        .fullName(fullName)
-        .document(document)
-        .phone(phone)
+    var recepient = new Recepient(fullName, document, phone);
+    var zipCode = new ZipCode("12345-678");
+    var address = new Address("Main Street", "123", "Apt 1",
+        "Downtown", "New York", "NY", zipCode);
+    var shippingInfo = Shipping.builder()
+        .shippingCost(new Money("25.00"))
+        .expectedDeliveryDate(LocalDate.now().minusDays(1))
+        .recepient(recepient)
         .address(address)
         .build();
-    var shippingCost = new Money("25.00");
-    var pastDeliveryDate = LocalDate.now().minusDays(1);
 
-    assertThatThrownBy(() -> order.changeShipping(shippingInfo, shippingCost, pastDeliveryDate))
+    assertThatThrownBy(() -> order.changeShipping(shippingInfo))
         .isInstanceOf(OrderInvalidShippingDeliveryDateException.class);
+  }
+
+  @Test
+  @DisplayName("Should change order item quantity successfully")
+  void shouldChangeOrderItemQuantitySuccessfully() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var newQuantity = new Quantity(new BigDecimal("5"));
+
+    order.changeItemQuantity(orderItem.id(), newQuantity);
+
+    assertThat(orderItem.quantity()).isEqualTo(newQuantity);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change item quantity with null orderItemId")
+  void shouldThrowExceptionWhenChangeItemQuantityWithNullOrderItemId() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var quantity = new Quantity(new BigDecimal("3"));
+
+    assertThatThrownBy(() -> order.changeItemQuantity(null, quantity))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change item quantity with null quantity")
+  void shouldThrowExceptionWhenChangeItemQuantityWithNullQuantity() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var orderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.changeItemQuantity(orderItemId, null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change item quantity with non-existent order item")
+  void shouldThrowExceptionWhenChangeItemQuantityWithNonExistentOrderItem() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var nonExistentOrderItemId = new OrderItemId();
+    var quantity = new Quantity(new BigDecimal("3"));
+
+    assertThatThrownBy(() -> order.changeItemQuantity(nonExistentOrderItemId, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException.class);
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount after changing item quantity")
+  void shouldRecalculateTotalAmountAfterChangingItemQuantity() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var newQuantity = new Quantity(new BigDecimal("4"));
+
+    order.changeItemQuantity(orderItem.id(), newQuantity);
+
+    assertThat(order.totalAmount()).isEqualTo(new Money("400.00"));
+  }
+
+  @Test
+  @DisplayName("Should recalculate total items after changing item quantity")
+  void shouldRecalculateTotalItemsAfterChangingItemQuantity() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var newQuantity = new Quantity(new BigDecimal("5"));
+
+    order.changeItemQuantity(orderItem.id(), newQuantity);
+
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
   }
 }

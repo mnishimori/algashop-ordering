@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.valueobject.Product;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
@@ -32,10 +33,13 @@ public class OrderItem {
   }
 
   @Builder(builderClassName = "DraftOrderItemBuilder", builderMethodName = "draftOrderItemBuilder")
-  private static OrderItem draftOrderItem(OrderId orderId, ProductId productId, ProductName productName, Money price,
-      Quantity quantity) {
-    var orderItem = new OrderItem(new OrderItemId(), orderId, productId, productName, price, quantity, Money.ZERO);
-    orderItem.recalculateTotalIAmount();
+  private static OrderItem draftOrderItem(OrderId orderId, Product product, Quantity quantity) {
+    Objects.requireNonNull(orderId);
+    Objects.requireNonNull(product);
+    Objects.requireNonNull(quantity);
+    var orderItem = new OrderItem(new OrderItemId(), orderId, product.id(), product.name(), product.price(), quantity,
+        Money.ZERO);
+    orderItem.recalculateTotalItemAmount();
     return orderItem;
   }
 
@@ -67,7 +71,7 @@ public class OrderItem {
     return totalAmount;
   }
 
-  private void recalculateTotalIAmount() {
+  private void recalculateTotalItemAmount() {
     this.totalAmount = this.price().multiply(this.quantity().value().intValue());
   }
 
@@ -118,5 +122,11 @@ public class OrderItem {
   @Override
   public int hashCode() {
     return Objects.hashCode(id);
+  }
+
+  void changeQuantity(Quantity quantity) {
+    Objects.requireNonNull(quantity);
+    this.setQuantity(quantity);
+    this.recalculateTotalItemAmount();
   }
 }

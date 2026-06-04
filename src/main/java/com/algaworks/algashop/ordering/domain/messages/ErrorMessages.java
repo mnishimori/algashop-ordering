@@ -16,9 +16,10 @@ public class ErrorMessages {
   public static final String PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY = "Product name cannot be null or empty";
   public static final String ORDER_STATUS_CANNOT_BE_CHANGED = "Order status cannot be changed. Order ID: %s, Order status: %s, New status: %s";
   public static final String ORDER_INVALID_SHIPPING_DELIVERY_DATE = "Order delivery date cannot be in the past. Order ID: %s, Delivery date: %s";
-  public static final String ORDER_CANNOT_BE_PLACED = "Order cannot be placed, because it is empty. Order ID: %s";
   public static final String ERROR_ORDER_CANNOT_BE_PLACED_HAS_NO_ITEMS = "Order %s cannot be placed, it has no items";
   public static final String ERROR_ORDER_CANNOT_BE_PLACED_HAS_NO_SHIPPING_INFO = "Order %s cannot be placed, it has no shipping info";
   public static final String ERROR_ORDER_CANNOT_BE_PLACED_HAS_NO_BILLING_INFO = "Order %s cannot be placed, it has no billing info";
   public static final String ERROR_ORDER_CANNOT_BE_PLACED_HAS_NO_PAYMENT_METHOD = "Order %s cannot be placed, it has no payment method";
+  public static final String ORDER_ITEM_NOT_FOUND = "Order item not found: %s";
+  public static final String PRODUCT_OUT_OF_STOCK = "Product %s is out of stock";
 }

@@ -271,4 +271,44 @@ class OrderItemTest {
         .build())
         .isInstanceOf(NullPointerException.class);
   }
+
+  @Test
+  @DisplayName("Should change quantity successfully")
+  void shouldChangeQuantitySuccessfully() {
+    var orderItem = OrderItemTestDataBuilder.anOrderItem()
+        .price(new Money("50.00"))
+        .quantity(new Quantity(new BigDecimal(2)))
+        .totalAmount(new Money("100.00"))
+        .build();
+
+    var newQuantity = new Quantity(new BigDecimal(5));
+
+    orderItem.changeQuantity(newQuantity);
+
+    assertThat(orderItem.quantity()).isEqualTo(newQuantity);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when change quantity with null")
+  void shouldThrowExceptionWhenChangeQuantityWithNull() {
+    var orderItem = OrderItemTestDataBuilder.anOrderItem().build();
+
+    assertThatThrownBy(() -> orderItem.changeQuantity(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount after changing quantity")
+  void shouldRecalculateTotalAmountAfterChangingQuantity() {
+    var orderItem = OrderItemTestDataBuilder.anOrderItem()
+        .price(new Money("50.00"))
+        .quantity(new Quantity(new BigDecimal(2)))
+        .build();
+
+    var newQuantity = new Quantity(new BigDecimal(4));
+
+    orderItem.changeQuantity(newQuantity);
+
+    assertThat(orderItem.totalAmount()).isEqualTo(new Money("200.00"));
+  }
 }
