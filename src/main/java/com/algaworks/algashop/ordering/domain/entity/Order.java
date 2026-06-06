@@ -136,6 +136,15 @@ public class Order {
     return OrderStatus.PLACED.equals(this.status);
   }
 
+  public void removeItem(OrderItemId orderItemId) {
+    Objects.requireNonNull(orderItemId);
+    this.verifyIfOrderChangeable();
+    var orderItem = this.findOrderItem(orderItemId);
+    this.items.remove(orderItem);
+    this.recalculateTotalAmount();
+    this.recalculateTotalItems();
+  }
+
   public void recalculateTotalAmount() {
     var totalAmount = this.items.stream()
         .map(OrderItem::totalAmount)

@@ -1272,4 +1272,179 @@ class OrderTest {
     assertThatThrownBy(() -> order.changeItemQuantity(orderItemId, quantity))
         .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
   }
+
+  @Test
+  @DisplayName("Should remove order item successfully when order is in DRAFT status")
+  void shouldRemoveOrderItemSuccessfullyWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product B"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var orderItemId = orderItem.id();
+
+    order.removeItem(orderItemId);
+
+    assertThat(order.items()).hasSize(1);
+    assertThat(order.items().stream().noneMatch(item -> item.id().equals(orderItemId))).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should recalculate total amount after removing order item")
+  void shouldRecalculateTotalAmountAfterRemovingOrderItem() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product B"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var orderItemId = orderItem.id();
+
+    order.removeItem(orderItemId);
+
+    assertThat(order.totalAmount()).isEqualTo(new Money("150.00"));
+  }
+
+  @Test
+  @DisplayName("Should recalculate total items after removing order item")
+  void shouldRecalculateTotalItemsAfterRemovingOrderItem() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product B"))
+            .price(new Money("50.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("3"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var orderItemId = orderItem.id();
+
+    order.removeItem(orderItemId);
+
+    assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("3")));
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing item with null orderItemId")
+  void shouldThrowExceptionWhenRemovingItemWithNullOrderItemId() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    assertThatThrownBy(() -> order.removeItem(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing item from PLACED order")
+  void shouldThrowExceptionWhenRemovingItemFromPlacedOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PLACED)
+        .items(new HashSet<>())
+        .build();
+    var orderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.removeItem(orderItemId))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing item from PAID order")
+  void shouldThrowExceptionWhenRemovingItemFromPaidOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .build();
+    var orderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.removeItem(orderItemId))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing item from READY order")
+  void shouldThrowExceptionWhenRemovingItemFromReadyOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.READY)
+        .items(new HashSet<>())
+        .build();
+    var orderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.removeItem(orderItemId))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing item from CANCELED order")
+  void shouldThrowExceptionWhenRemovingItemFromCanceledOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.CANCELED)
+        .items(new HashSet<>())
+        .build();
+    var orderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.removeItem(orderItemId))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when removing non-existent order item")
+  void shouldThrowExceptionWhenRemovingNonExistentOrderItem() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var nonExistentOrderItemId = new OrderItemId();
+
+    assertThatThrownBy(() -> order.removeItem(nonExistentOrderItemId))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException.class);
+  }
 }
