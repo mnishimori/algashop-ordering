@@ -193,4 +193,18 @@ public class ShoppingCart {
         .reduce(Money.ZERO, Money::add);
     this.setTotalAmount(totalAmount);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ShoppingCart that = (ShoppingCart) o;
+    return Objects.equals(shoppingCartId, that.shoppingCartId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(shoppingCartId);
+  }
 }
