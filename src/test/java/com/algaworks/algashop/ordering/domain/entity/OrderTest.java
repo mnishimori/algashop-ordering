@@ -3,6 +3,7 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeCanceledException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.valueobject.Address;
@@ -1589,5 +1590,108 @@ class OrderTest {
 
     assertThat(secondReadyAt).isNotNull();
     assertThat(secondReadyAt).isAfter(firstReadyAt);
+  }
+
+  @Test
+  @DisplayName("Should cancel order from DRAFT status")
+  void shouldCancelOrderFromDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+
+    order.cancel();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.CANCELED);
+    assertThat(order.canceledAt()).isNotNull();
+    assertThat(order.canceledAt()).isBeforeOrEqualTo(OffsetDateTime.now());
+  }
+
+  @Test
+  @DisplayName("Should cancel order from PLACED status")
+  void shouldCancelOrderFromPlacedStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("1"))
+    );
+    order.changePaymentMethod(PaymentMethod.CREDIT_CARD);
+    order.changeBilling(Billing.builder()
+        .fullName(new FullName("John", "Doe"))
+        .document(new Document("12345678900"))
+        .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Rua Teste")
+            .number("123")
+            .neighborhood("Centro")
+            .city("São Paulo")
+            .state("SP")
+            .zipCode(new ZipCode("01234-567"))
+            .build())
+        .email(new Email("john.doe@example.com"))
+        .build());
+    order.changeShipping(Shipping.builder()
+        .shippingCost(new Money("10.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(7))
+        .recepient(new Recepient(
+            new FullName("John", "Doe"),
+            new Document("12345678900"),
+            new Phone("11999999999")))
+        .address(Address.builder()
+            .street("Rua Teste")
+            .number("123")
+            .neighborhood("Centro")
+            .city("São Paulo")
+            .state("SP")
+            .zipCode(new ZipCode("01234-567"))
+            .build())
+        .build());
+    order.place();
+
+    order.cancel();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.CANCELED);
+    assertThat(order.canceledAt()).isNotNull();
+    assertThat(order.canceledAt()).isBeforeOrEqualTo(OffsetDateTime.now());
+  }
+
+  @Test
+  @DisplayName("Should cancel order from PAID status")
+  void shouldCancelOrderFromPaidStatus() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.PAID)
+        .build();
+
+    order.cancel();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.CANCELED);
+    assertThat(order.canceledAt()).isNotNull();
+    assertThat(order.canceledAt()).isBeforeOrEqualTo(OffsetDateTime.now());
+  }
+
+  @Test
+  @DisplayName("Should cancel order from READY status")
+  void shouldCancelOrderFromReadyStatus() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.READY)
+        .build();
+
+    order.cancel();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.CANCELED);
+    assertThat(order.canceledAt()).isNotNull();
+    assertThat(order.canceledAt()).isBeforeOrEqualTo(OffsetDateTime.now());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when canceling from CANCELED status")
+  void shouldThrowExceptionWhenCancelingFromCanceledStatus() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.CANCELED)
+        .build();
+
+    assertThatThrownBy(order::cancel)
+        .isInstanceOf(OrderCannotBeCanceledException.class);
   }
 }

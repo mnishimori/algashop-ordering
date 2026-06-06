@@ -1,5 +1,6 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeCanceledException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException;
@@ -137,6 +138,8 @@ public class Order {
     return OrderStatus.PLACED.equals(this.status);
   }
 
+  public boolean isCanceled() { return OrderStatus.CANCELED.equals(this.status);}
+
   public void removeItem(OrderItemId orderItemId) {
     Objects.requireNonNull(orderItemId);
     this.verifyIfOrderChangeable();
@@ -155,6 +158,18 @@ public class Order {
   private void verifyIfCanChangeToReady() {
     if (!this.status.canChangeTo(OrderStatus.READY)) {
       throw new OrderCannotBeReadyException(this.id(), this.status);
+    }
+  }
+
+  public void cancel() {
+    this.verifyIfCanCancel();
+    this.changeStatus(OrderStatus.CANCELED);
+    this.setCanceledAt(OffsetDateTime.now());
+  }
+
+  private void verifyIfCanCancel() {
+    if (!this.status.canChangeTo(OrderStatus.CANCELED)) {
+      throw new OrderCannotBeCanceledException(this.id(), this.status);
     }
   }
 
