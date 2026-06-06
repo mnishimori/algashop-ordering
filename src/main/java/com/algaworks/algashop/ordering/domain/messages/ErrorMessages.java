@@ -25,4 +25,5 @@ public class ErrorMessages {
   public static final String ORDER_CANNOT_BE_EDITED = "Order %s with status %s cannot be edited";
   public static final String ORDER_CANNOT_BE_READY = "Order %s with status %s cannot be ready";
   public static final String ORDER_CANNOT_BE_CANCELED = "Order %s with status %s cannot be cancelled";
+  public static final String SHOPPING_CART_ITEM_NOT_FOUND = "Shopping cart item not found: %s";
 }
