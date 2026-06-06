@@ -990,4 +990,286 @@ class OrderTest {
 
     assertThat(order.totalItems()).isEqualTo(new Quantity(new BigDecimal("5")));
   }
+
+  @Test
+  @DisplayName("Should allow adding order item when order is in DRAFT status")
+  void shouldAllowAddingOrderItemWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Product A"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    order.addOrderItem(product, quantity);
+
+    assertThat(order.items()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when adding order item to PLACED order")
+  void shouldThrowExceptionWhenAddingOrderItemToPlacedOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PLACED)
+        .items(new HashSet<>())
+        .build();
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Product A"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    assertThatThrownBy(() -> order.addOrderItem(product, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when adding order item to PAID order")
+  void shouldThrowExceptionWhenAddingOrderItemToPaidOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .build();
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Product A"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    assertThatThrownBy(() -> order.addOrderItem(product, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when adding order item to READY order")
+  void shouldThrowExceptionWhenAddingOrderItemToReadyOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.READY)
+        .items(new HashSet<>())
+        .build();
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Product A"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    assertThatThrownBy(() -> order.addOrderItem(product, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when adding order item to CANCELED order")
+  void shouldThrowExceptionWhenAddingOrderItemToCanceledOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.CANCELED)
+        .items(new HashSet<>())
+        .build();
+    var product = ProductTestDataBuilder.createProduct()
+        .name(new ProductName("Product A"))
+        .price(new Money("100.00"))
+        .inStock(true)
+        .build();
+    var quantity = new Quantity(new BigDecimal("2"));
+
+    assertThatThrownBy(() -> order.addOrderItem(product, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should allow changing payment method when order is in DRAFT status")
+  void shouldAllowChangingPaymentMethodWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var newPaymentMethod = PaymentMethod.CREDIT_CARD;
+
+    order.changePaymentMethod(newPaymentMethod);
+
+    assertThat(order.paymentMethod()).isEqualTo(newPaymentMethod);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing payment method on PLACED order")
+  void shouldThrowExceptionWhenChangingPaymentMethodOnPlacedOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PLACED)
+        .items(new HashSet<>())
+        .build();
+
+    assertThatThrownBy(() -> order.changePaymentMethod(PaymentMethod.CREDIT_CARD))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should allow changing billing info when order is in DRAFT status")
+  void shouldAllowChangingBillingInfoWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var billingInfo = Billing.builder()
+        .fullName(new FullName("John", "Doe"))
+        .document(new Document("12345678900"))
+        .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Main Street")
+            .number("123")
+            .neighborhood("Downtown")
+            .city("New York")
+            .state("NY")
+            .zipCode(new ZipCode("12345-678"))
+            .build())
+        .email(new Email("john.doe@example.com"))
+        .build();
+
+    order.changeBilling(billingInfo);
+
+    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing billing info on PAID order")
+  void shouldThrowExceptionWhenChangingBillingInfoOnPaidOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .build();
+    var billingInfo = Billing.builder()
+        .fullName(new FullName("John", "Doe"))
+        .document(new Document("12345678900"))
+        .phone(new Phone("11999999999"))
+        .address(Address.builder()
+            .street("Main Street")
+            .number("123")
+            .neighborhood("Downtown")
+            .city("New York")
+            .state("NY")
+            .zipCode(new ZipCode("12345-678"))
+            .build())
+        .email(new Email("john.doe@example.com"))
+        .build();
+
+    assertThatThrownBy(() -> order.changeBilling(billingInfo))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should allow changing shipping info when order is in DRAFT status")
+  void shouldAllowChangingShippingInfoWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    var shippingInfo = Shipping.builder()
+        .shippingCost(new Money("25.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(10))
+        .recepient(new Recepient(
+            new FullName("Jane", "Smith"),
+            new Document("98765432100"),
+            new Phone("11888888888")))
+        .address(Address.builder()
+            .street("Main Street")
+            .number("123")
+            .neighborhood("Downtown")
+            .city("New York")
+            .state("NY")
+            .zipCode(new ZipCode("12345-678"))
+            .build())
+        .build();
+
+    order.changeShipping(shippingInfo);
+
+    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing shipping info on READY order")
+  void shouldThrowExceptionWhenChangingShippingInfoOnReadyOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.READY)
+        .items(new HashSet<>())
+        .build();
+    var shippingInfo = Shipping.builder()
+        .shippingCost(new Money("25.00"))
+        .expectedDeliveryDate(LocalDate.now().plusDays(10))
+        .recepient(new Recepient(
+            new FullName("Jane", "Smith"),
+            new Document("98765432100"),
+            new Phone("11888888888")))
+        .address(Address.builder()
+            .street("Main Street")
+            .number("123")
+            .neighborhood("Downtown")
+            .city("New York")
+            .state("NY")
+            .zipCode(new ZipCode("12345-678"))
+            .build())
+        .build();
+
+    assertThatThrownBy(() -> order.changeShipping(shippingInfo))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
+
+  @Test
+  @DisplayName("Should allow changing item quantity when order is in DRAFT status")
+  void shouldAllowChangingItemQuantityWhenOrderIsInDraftStatus() {
+    var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct()
+            .name(new ProductName("Product A"))
+            .price(new Money("100.00"))
+            .inStock(true)
+            .build(),
+        new Quantity(new BigDecimal("2"))
+    );
+
+    var orderItem = order.items().iterator().next();
+    var newQuantity = new Quantity(new BigDecimal("5"));
+
+    order.changeItemQuantity(orderItem.id(), newQuantity);
+
+    assertThat(orderItem.quantity()).isEqualTo(newQuantity);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when changing item quantity on CANCELED order")
+  void shouldThrowExceptionWhenChangingItemQuantityOnCanceledOrder() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.CANCELED)
+        .items(new HashSet<>())
+        .build();
+    var orderItemId = new OrderItemId();
+    var quantity = new Quantity(new BigDecimal("3"));
+
+    assertThatThrownBy(() -> order.changeItemQuantity(orderItemId, quantity))
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+  }
 }

@@ -1,5 +1,6 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException;
@@ -63,6 +64,7 @@ public class Order {
   public void addOrderItem(Product product, Quantity quantity) {
     Objects.requireNonNull(product);
     Objects.requireNonNull(quantity);
+    this.verifyIfOrderChangeable();
     product.changeOutStock();
     var orderItem = OrderItem.draftOrderItemBuilder()
         .orderId(this.id())
@@ -97,16 +99,19 @@ public class Order {
 
   public void changePaymentMethod(PaymentMethod paymentMethod) {
     Objects.requireNonNull(paymentMethod);
+    this.verifyIfOrderChangeable();
     this.setPaymentMethod(paymentMethod);
   }
 
   public void changeBilling(Billing billing) {
     Objects.requireNonNull(billing);
+    this.verifyIfOrderChangeable();
     this.setBilling(billing);
   }
 
   public void changeShipping(Shipping shipping) {
     Objects.requireNonNull(shipping);
+    this.verifyIfOrderChangeable();
     if (shipping.expectedDeliveryDate().isBefore(LocalDate.now())) {
       throw new OrderInvalidShippingDeliveryDateException(this.id(), shipping.expectedDeliveryDate());
     }
@@ -116,17 +121,11 @@ public class Order {
   public void changeItemQuantity(OrderItemId orderItemId, Quantity quantity) {
     Objects.requireNonNull(orderItemId);
     Objects.requireNonNull(quantity);
+    this.verifyIfOrderChangeable();
     var orderItem = this.findOrderItem(orderItemId);
     orderItem.changeQuantity(quantity);
     this.recalculateTotalAmount();
     this.recalculateTotalItems();
-  }
-
-  private OrderItem findOrderItem(OrderItemId orderItemId) {
-    return this.items.stream()
-        .filter(orderItem -> orderItem.id().equals(orderItemId))
-        .findFirst()
-        .orElseThrow(() -> new OrderItemNotFoundException(orderItemId));
   }
 
   public boolean isDraft() {
@@ -146,6 +145,13 @@ public class Order {
     this.setTotalAmount(totalAmount.add(shipping));
   }
 
+  private OrderItem findOrderItem(OrderItemId orderItemId) {
+    return this.items.stream()
+        .filter(orderItem -> orderItem.id().equals(orderItemId))
+        .findFirst()
+        .orElseThrow(() -> new OrderItemNotFoundException(orderItemId));
+  }
+
   private void changeStatus(OrderStatus orderStatus) {
     if (this.status().canNotChangeTo(orderStatus)) {
       throw new OrderStatusCannotBeChangedException(this.id(), this.status(), orderStatus);
@@ -158,6 +164,12 @@ public class Order {
         .map(OrderItem::quantity)
         .reduce(Quantity.ZERO, Quantity::add);
     this.setTotalItems(totalItems);
+  }
+
+  private void verifyIfOrderChangeable() {
+    if (!this.isDraft()) {
+      throw new OrderCannotBeEditedException(this.id(), this.status());
+    }
   }
 
   public OrderId id() {
