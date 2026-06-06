@@ -1447,4 +1447,147 @@ class OrderTest {
     assertThatThrownBy(() -> order.removeItem(nonExistentOrderItemId))
         .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException.class);
   }
+
+  @Test
+  @DisplayName("Should mark order as ready when status is PAID")
+  void shouldMarkOrderAsReadyWhenStatusIsPaid() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .build();
+
+    order.markAsReady();
+
+    assertThat(order.status()).isEqualTo(OrderStatus.READY);
+    assertThat(order.readyAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should throw exception when mark as ready from DRAFT status")
+  void shouldThrowExceptionWhenMarkAsReadyFromDraftStatus() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(Money.ZERO)
+        .totalItems(Quantity.ZERO)
+        .status(OrderStatus.DRAFT)
+        .items(new HashSet<>())
+        .build();
+
+    assertThatThrownBy(order::markAsReady)
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when mark as ready from PLACED status")
+  void shouldThrowExceptionWhenMarkAsReadyFromPlacedStatus() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.PLACED)
+        .items(new HashSet<>())
+        .build();
+
+    assertThatThrownBy(order::markAsReady)
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when mark as ready from READY status")
+  void shouldThrowExceptionWhenMarkAsReadyFromReadyStatus() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.READY)
+        .items(new HashSet<>())
+        .build();
+
+    assertThatThrownBy(order::markAsReady)
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when mark as ready from CANCELED status")
+  void shouldThrowExceptionWhenMarkAsReadyFromCanceledStatus() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.CANCELED)
+        .items(new HashSet<>())
+        .build();
+
+    assertThatThrownBy(order::markAsReady)
+        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+  }
+
+  @Test
+  @DisplayName("Should set readyAt timestamp when marking as ready")
+  void shouldSetReadyAtTimestampWhenMarkingAsReady() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .readyAt(null)
+        .build();
+
+    var beforeReady = OffsetDateTime.now();
+    order.markAsReady();
+    var afterReady = OffsetDateTime.now();
+
+    assertThat(order.readyAt()).isNotNull();
+    assertThat(order.readyAt()).isBetween(beforeReady, afterReady);
+  }
+
+  @Test
+  @DisplayName("Should update readyAt when marking as ready multiple times")
+  void shouldUpdateReadyAtWhenMarkingAsReadyMultipleTimes() {
+    var order = Order.existingOrderBuilder()
+        .id(new OrderId())
+        .customerId(new CustomerId(UUID.randomUUID()))
+        .totalAmount(new Money("100.00"))
+        .totalItems(new Quantity(new BigDecimal("2")))
+        .status(OrderStatus.PAID)
+        .items(new HashSet<>())
+        .readyAt(null)
+        .build();
+
+    order.markAsReady();
+    var firstReadyAt = order.readyAt();
+
+    // Reset status to PAID to allow marking as ready again
+    var orderForSecondReady = Order.existingOrderBuilder()
+        .id(order.id())
+        .customerId(order.customerId())
+        .totalAmount(order.totalAmount())
+        .totalItems(order.totalItems())
+        .placedAt(order.placedAt())
+        .paidAt(order.paidAt())
+        .canceledAt(order.canceledAt())
+        .readyAt(order.readyAt())
+        .billing(order.billingInfo())
+        .shipping(order.shippingInfo())
+        .status(OrderStatus.PAID)
+        .paymentMethod(order.paymentMethod())
+        .items(order.items())
+        .build();
+
+    orderForSecondReady.markAsReady();
+    var secondReadyAt = orderForSecondReady.readyAt();
+
+    assertThat(secondReadyAt).isNotNull();
+    assertThat(secondReadyAt).isAfter(firstReadyAt);
+  }
 }

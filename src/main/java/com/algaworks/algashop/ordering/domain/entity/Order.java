@@ -2,6 +2,7 @@ package com.algaworks.algashop.ordering.domain.entity;
 
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException;
 import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
+import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException;
 import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
 import com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException;
 import com.algaworks.algashop.ordering.domain.exception.OrderStatusCannotBeChangedException;
@@ -143,6 +144,18 @@ public class Order {
     this.items.remove(orderItem);
     this.recalculateTotalAmount();
     this.recalculateTotalItems();
+  }
+
+  public void markAsReady() {
+    this.verifyIfCanChangeToReady();
+    this.changeStatus(OrderStatus.READY);
+    this.setReadyAt(OffsetDateTime.now());
+  }
+
+  private void verifyIfCanChangeToReady() {
+    if (!this.status.canChangeTo(OrderStatus.READY)) {
+      throw new OrderCannotBeReadyException(this.id(), this.status);
+    }
   }
 
   public void recalculateTotalAmount() {
