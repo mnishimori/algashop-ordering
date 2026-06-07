@@ -1,10 +1,12 @@
 package com.algaworks.algashop.ordering.domain.valueobject;
 
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.VALUE_CANNOT_BE_NEGATIVE;
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.VALUE_CANNOT_BE_NULL_OR_EMPTY;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.VALUE_CANNOT_BE_NEGATIVE;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.VALUE_CANNOT_BE_NULL_OR_EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.DisplayName;

@@ -3,6 +3,13 @@ package com.algaworks.algashop.ordering.domain.valueobject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Billing;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Document;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
+import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Phone;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

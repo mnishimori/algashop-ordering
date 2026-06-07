@@ -1,9 +1,10 @@
 package com.algaworks.algashop.ordering.domain.validator;
 
-import static com.algaworks.algashop.ordering.domain.validator.AttributeValidator.ATTRIBUTE_CANNOT_BE_NULL;
+import static com.algaworks.algashop.ordering.domain.model.validator.AttributeValidator.ATTRIBUTE_CANNOT_BE_NULL;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.validator.AttributeValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

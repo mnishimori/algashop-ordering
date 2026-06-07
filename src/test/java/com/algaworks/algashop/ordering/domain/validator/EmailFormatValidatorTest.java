@@ -1,10 +1,11 @@
 package com.algaworks.algashop.ordering.domain.validator;
 
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.EMAIL_CANNOT_BE_BLANK;
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.EMAIL_IS_INVALID;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.EMAIL_CANNOT_BE_BLANK;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.EMAIL_IS_INVALID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.validator.EmailFormatValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

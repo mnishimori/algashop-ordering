@@ -3,15 +3,17 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.algaworks.algashop.ordering.domain.exception.ProductOutOfStockException;
-import com.algaworks.algashop.ordering.domain.exception.ShoppingCartItemNotFoundException;
-import com.algaworks.algashop.ordering.domain.valueobject.Money;
-import com.algaworks.algashop.ordering.domain.valueobject.Product;
-import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
-import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartItemId;
+import com.algaworks.algashop.ordering.domain.model.exception.ProductOutOfStockException;
+import com.algaworks.algashop.ordering.domain.model.exception.ShoppingCartItemNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.entity.ShoppingCart;
+import com.algaworks.algashop.ordering.domain.model.entity.ShoppingCartItem;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Product;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ShoppingCartId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ShoppingCartItemId;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -47,7 +49,7 @@ class ShoppingCartTest {
     @DisplayName("Should create a new cart with Money.ZERO totalAmount")
     void shouldCreateNewCartWithZeroTotalAmount() {
       ShoppingCart newCart = ShoppingCart.newShoppingCart(
-          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+          new CustomerId(UUID.randomUUID()));
 
       assertThat(newCart.totalAmount()).isEqualTo(Money.ZERO);
     }
@@ -56,7 +58,7 @@ class ShoppingCartTest {
     @DisplayName("Should create a new cart with Quantity.ZERO totalItems")
     void shouldCreateNewCartWithZeroTotalItems() {
       ShoppingCart newCart = ShoppingCart.newShoppingCart(
-          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+          new CustomerId(UUID.randomUUID()));
 
       assertThat(newCart.totalItems()).isEqualTo(Quantity.ZERO);
     }
@@ -65,7 +67,7 @@ class ShoppingCartTest {
     @DisplayName("Should create a new cart with empty items collection")
     void shouldCreateNewCartWithEmptyItems() {
       ShoppingCart newCart = ShoppingCart.newShoppingCart(
-          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+          new CustomerId(UUID.randomUUID()));
 
       assertThat(newCart.items()).isEmpty();
     }
@@ -74,7 +76,7 @@ class ShoppingCartTest {
     @DisplayName("Should create a new cart with non-null id")
     void shouldCreateNewCartWithNonNullId() {
       ShoppingCart newCart = ShoppingCart.newShoppingCart(
-          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+          new CustomerId(UUID.randomUUID()));
 
       assertThat(newCart.shoppingCartId()).isNotNull();
     }
@@ -83,7 +85,7 @@ class ShoppingCartTest {
     @DisplayName("Should create a new cart with non-null createdAt")
     void shouldCreateNewCartWithNonNullCreatedAt() {
       ShoppingCart newCart = ShoppingCart.newShoppingCart(
-          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+          new CustomerId(UUID.randomUUID()));
 
       assertThat(newCart.createdAt()).isNotNull();
     }

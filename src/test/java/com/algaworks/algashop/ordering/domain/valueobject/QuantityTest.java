@@ -1,9 +1,10 @@
 package com.algaworks.algashop.ordering.domain.valueobject;
 
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.QUANTITY_MUST_BE_GREATER_THAN_ZERO;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.QUANTITY_MUST_BE_GREATER_THAN_ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.DisplayName;

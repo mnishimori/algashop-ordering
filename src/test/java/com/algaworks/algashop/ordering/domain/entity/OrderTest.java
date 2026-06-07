@@ -3,24 +3,31 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.algaworks.algashop.ordering.domain.exception.OrderCannotBeCanceledException;
-import com.algaworks.algashop.ordering.domain.exception.OrderCannotBePlacedException;
-import com.algaworks.algashop.ordering.domain.exception.OrderInvalidShippingDeliveryDateException;
-import com.algaworks.algashop.ordering.domain.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.valueobject.Billing;
-import com.algaworks.algashop.ordering.domain.valueobject.Document;
-import com.algaworks.algashop.ordering.domain.valueobject.Email;
-import com.algaworks.algashop.ordering.domain.valueobject.FullName;
-import com.algaworks.algashop.ordering.domain.valueobject.Money;
-import com.algaworks.algashop.ordering.domain.valueobject.Phone;
-import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
-import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.Recepient;
-import com.algaworks.algashop.ordering.domain.valueobject.Shipping;
-import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
-import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.OrderItemId;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderCannotBeCanceledException;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderCannotBePlacedException;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderInvalidShippingDeliveryDateException;
+import com.algaworks.algashop.ordering.domain.model.entity.Order;
+import com.algaworks.algashop.ordering.domain.model.entity.OrderItem;
+import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
+import com.algaworks.algashop.ordering.domain.model.entity.PaymentMethod;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderCannotBeEditedException;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderCannotBeReadyException;
+import com.algaworks.algashop.ordering.domain.model.exception.OrderItemNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Billing;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Document;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
+import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Phone;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Recepient;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Shipping;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -947,7 +954,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("3"));
 
     assertThatThrownBy(() -> order.changeItemQuantity(nonExistentOrderItemId, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException.class);
+        .isInstanceOf(OrderItemNotFoundException.class);
   }
 
   @Test
@@ -1027,7 +1034,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("2"));
 
     assertThatThrownBy(() -> order.addOrderItem(product, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1049,7 +1056,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("2"));
 
     assertThatThrownBy(() -> order.addOrderItem(product, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1071,7 +1078,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("2"));
 
     assertThatThrownBy(() -> order.addOrderItem(product, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1093,7 +1100,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("2"));
 
     assertThatThrownBy(() -> order.addOrderItem(product, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1120,7 +1127,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(() -> order.changePaymentMethod(PaymentMethod.CREDIT_CARD))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1174,7 +1181,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(() -> order.changeBilling(billingInfo))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1232,7 +1239,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(() -> order.changeShipping(shippingInfo))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1271,7 +1278,7 @@ class OrderTest {
     var quantity = new Quantity(new BigDecimal("3"));
 
     assertThatThrownBy(() -> order.changeItemQuantity(orderItemId, quantity))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1385,7 +1392,7 @@ class OrderTest {
     var orderItemId = new OrderItemId();
 
     assertThatThrownBy(() -> order.removeItem(orderItemId))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1402,7 +1409,7 @@ class OrderTest {
     var orderItemId = new OrderItemId();
 
     assertThatThrownBy(() -> order.removeItem(orderItemId))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1419,7 +1426,7 @@ class OrderTest {
     var orderItemId = new OrderItemId();
 
     assertThatThrownBy(() -> order.removeItem(orderItemId))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1436,7 +1443,7 @@ class OrderTest {
     var orderItemId = new OrderItemId();
 
     assertThatThrownBy(() -> order.removeItem(orderItemId))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeEditedException.class);
+        .isInstanceOf(OrderCannotBeEditedException.class);
   }
 
   @Test
@@ -1446,7 +1453,7 @@ class OrderTest {
     var nonExistentOrderItemId = new OrderItemId();
 
     assertThatThrownBy(() -> order.removeItem(nonExistentOrderItemId))
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderItemNotFoundException.class);
+        .isInstanceOf(OrderItemNotFoundException.class);
   }
 
   @Test
@@ -1480,7 +1487,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(order::markAsReady)
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+        .isInstanceOf(OrderCannotBeReadyException.class);
   }
 
   @Test
@@ -1496,7 +1503,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(order::markAsReady)
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+        .isInstanceOf(OrderCannotBeReadyException.class);
   }
 
   @Test
@@ -1512,7 +1519,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(order::markAsReady)
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+        .isInstanceOf(OrderCannotBeReadyException.class);
   }
 
   @Test
@@ -1528,7 +1535,7 @@ class OrderTest {
         .build();
 
     assertThatThrownBy(order::markAsReady)
-        .isInstanceOf(com.algaworks.algashop.ordering.domain.exception.OrderCannotBeReadyException.class);
+        .isInstanceOf(OrderCannotBeReadyException.class);
   }
 
   @Test

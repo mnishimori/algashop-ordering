@@ -1,10 +1,11 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
 
-import com.algaworks.algashop.ordering.domain.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.valueobject.FullName;
-import com.algaworks.algashop.ordering.domain.valueobject.LoyaltyPoints;
-import com.algaworks.algashop.ordering.domain.valueobject.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.entity.Customer;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import java.time.LocalDate;
 
 public class CustomerTestDataBuilder {

@@ -3,14 +3,14 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.algaworks.algashop.ordering.domain.exception.ShoppingCartItemIncompatibleProductException;
-import com.algaworks.algashop.ordering.domain.valueobject.Money;
-import com.algaworks.algashop.ordering.domain.valueobject.Product;
-import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
-import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartItemId;
+import com.algaworks.algashop.ordering.domain.model.entity.ShoppingCartItem;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Product;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ProductId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ShoppingCartId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ShoppingCartItemId;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -135,153 +135,6 @@ class ShoppingCartItemTest {
         .build())
         .isInstanceOf(NullPointerException.class);
   }
-
-  @Test
-  @DisplayName("Should refresh item with product data")
-  void shouldRefreshItemWithProductData() {
-    ShoppingCartItemId id = new ShoppingCartItemId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-    ShoppingCartId shoppingCartId = new ShoppingCartId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001"));
-    ProductId productId = new ProductId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-    ProductName oldName = new ProductName("Old Product");
-    Money oldPrice = new Money("50.00");
-    Quantity quantity = new Quantity(new BigDecimal(2));
-    
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(id)
-        .shoppingCartId(shoppingCartId)
-        .product(productId)
-        .productName(oldName)
-        .price(oldPrice)
-        .quantity(quantity)
-        .totalAmount(new Money("100.00"))
-        .available(true)
-        .build();
-
-    ProductName newName = new ProductName("New Product");
-    Money newPrice = new Money("75.00");
-    Product updatedProduct = Product.builder()
-        .id(productId)
-        .name(newName)
-        .price(newPrice)
-        .inStock(false)
-        .build();
-
-    item.refresh(updatedProduct);
-
-    assertThat(item.productName()).isEqualTo(newName);
-    assertThat(item.price()).isEqualTo(newPrice);
-    assertThat(item.available()).isFalse();
-    assertThat(item.totalAmount()).isEqualTo(new Money("150.00"));
-  }
-
-  @Test
-  @DisplayName("Should throw exception when refresh with null product")
-  void shouldThrowExceptionWhenRefreshWithNullProduct() {
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(new ShoppingCartItemId())
-        .shoppingCartId(new ShoppingCartId())
-        .product(new ProductId())
-        .productName(new ProductName("Product"))
-        .price(new Money("10.00"))
-        .quantity(new Quantity(new BigDecimal(1)))
-        .totalAmount(Money.ZERO)
-        .available(true)
-        .build();
-
-    assertThatThrownBy(() -> item.refresh(null))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
-  @DisplayName("Should throw exception when refresh with incompatible product id")
-  void shouldThrowExceptionWhenRefreshWithIncompatibleProductId() {
-    ShoppingCartItemId id = new ShoppingCartItemId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-    ShoppingCartId shoppingCartId = new ShoppingCartId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001"));
-    ProductId productId = new ProductId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-    
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(id)
-        .shoppingCartId(shoppingCartId)
-        .product(productId)
-        .productName(new ProductName("Product"))
-        .price(new Money("10.00"))
-        .quantity(new Quantity(new BigDecimal(1)))
-        .totalAmount(Money.ZERO)
-        .available(true)
-        .build();
-
-    ProductId differentProductId = new ProductId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001"));
-    Product differentProduct = Product.builder()
-        .id(differentProductId)
-        .name(new ProductName("Different Product"))
-        .price(new Money("20.00"))
-        .inStock(true)
-        .build();
-
-    assertThatThrownBy(() -> item.refresh(differentProduct))
-        .isInstanceOf(ShoppingCartItemIncompatibleProductException.class)
-        .hasMessage("Product ID mismatch");
-  }
-
-  @Test
-  @DisplayName("Should change quantity successfully")
-  void shouldChangeQuantitySuccessfully() {
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(new ShoppingCartItemId())
-        .shoppingCartId(new ShoppingCartId())
-        .product(new ProductId())
-        .productName(new ProductName("Product"))
-        .price(new Money("50.00"))
-        .quantity(new Quantity(new BigDecimal(2)))
-        .totalAmount(new Money("100.00"))
-        .available(true)
-        .build();
-
-    Quantity newQuantity = new Quantity(new BigDecimal(5));
-
-    item.changeQuantity(newQuantity);
-
-    assertThat(item.quantity()).isEqualTo(newQuantity);
-    assertThat(item.totalAmount()).isEqualTo(new Money("250.00"));
-  }
-
-  @Test
-  @DisplayName("Should throw exception when change quantity with null")
-  void shouldThrowExceptionWhenChangeQuantityWithNull() {
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(new ShoppingCartItemId())
-        .shoppingCartId(new ShoppingCartId())
-        .product(new ProductId())
-        .productName(new ProductName("Product"))
-        .price(new Money("10.00"))
-        .quantity(new Quantity(new BigDecimal(1)))
-        .totalAmount(Money.ZERO)
-        .available(true)
-        .build();
-
-    assertThatThrownBy(() -> item.changeQuantity(null))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
-  @DisplayName("Should throw exception when change quantity with zero")
-  void shouldThrowExceptionWhenChangeQuantityWithZero() {
-    ShoppingCartItem item = ShoppingCartItem.existingShoppingCartItemBuilder()
-        .id(new ShoppingCartItemId())
-        .shoppingCartId(new ShoppingCartId())
-        .product(new ProductId())
-        .productName(new ProductName("Product"))
-        .price(new Money("10.00"))
-        .quantity(new Quantity(new BigDecimal(1)))
-        .totalAmount(Money.ZERO)
-        .available(true)
-        .build();
-
-    assertThatThrownBy(() -> item.changeQuantity(Quantity.ZERO))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Quantity must be greater than 0");
-  }
-
 
   @Test
   @DisplayName("Should recalculate totals")

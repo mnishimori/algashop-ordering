@@ -1,10 +1,11 @@
 package com.algaworks.algashop.ordering.domain.valueobject;
 
-import static com.algaworks.algashop.ordering.domain.messages.ErrorMessages.ZIP_CODE_IS_INVALID;
+import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.ZIP_CODE_IS_INVALID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

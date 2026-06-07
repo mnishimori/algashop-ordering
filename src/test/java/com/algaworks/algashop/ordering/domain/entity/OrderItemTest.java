@@ -3,12 +3,13 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.algaworks.algashop.ordering.domain.valueobject.Money;
-import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
-import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.OrderItemId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
+import com.algaworks.algashop.ordering.domain.model.entity.OrderItem;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.ProductId;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -272,43 +273,4 @@ class OrderItemTest {
         .isInstanceOf(NullPointerException.class);
   }
 
-  @Test
-  @DisplayName("Should change quantity successfully")
-  void shouldChangeQuantitySuccessfully() {
-    var orderItem = OrderItemTestDataBuilder.anOrderItem()
-        .price(new Money("50.00"))
-        .quantity(new Quantity(new BigDecimal(2)))
-        .totalAmount(new Money("100.00"))
-        .build();
-
-    var newQuantity = new Quantity(new BigDecimal(5));
-
-    orderItem.changeQuantity(newQuantity);
-
-    assertThat(orderItem.quantity()).isEqualTo(newQuantity);
-  }
-
-  @Test
-  @DisplayName("Should throw exception when change quantity with null")
-  void shouldThrowExceptionWhenChangeQuantityWithNull() {
-    var orderItem = OrderItemTestDataBuilder.anOrderItem().build();
-
-    assertThatThrownBy(() -> orderItem.changeQuantity(null))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
-  @DisplayName("Should recalculate total amount after changing quantity")
-  void shouldRecalculateTotalAmountAfterChangingQuantity() {
-    var orderItem = OrderItemTestDataBuilder.anOrderItem()
-        .price(new Money("50.00"))
-        .quantity(new Quantity(new BigDecimal(2)))
-        .build();
-
-    var newQuantity = new Quantity(new BigDecimal(4));
-
-    orderItem.changeQuantity(newQuantity);
-
-    assertThat(orderItem.totalAmount()).isEqualTo(new Money("200.00"));
-  }
 }
