@@ -9,8 +9,13 @@ import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.Product;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
+import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
+import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartItemId;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +37,56 @@ class ShoppingCartTest {
         .inStock(true)
         .build();
     quantity = new Quantity(new BigDecimal("2"));
+  }
+
+  @Nested
+  @DisplayName("newShoppingCart")
+  class NewShoppingCart {
+
+    @Test
+    @DisplayName("Should create a new cart with Money.ZERO totalAmount")
+    void shouldCreateNewCartWithZeroTotalAmount() {
+      ShoppingCart newCart = ShoppingCart.newShoppingCart(
+          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+
+      assertThat(newCart.totalAmount()).isEqualTo(Money.ZERO);
+    }
+
+    @Test
+    @DisplayName("Should create a new cart with Quantity.ZERO totalItems")
+    void shouldCreateNewCartWithZeroTotalItems() {
+      ShoppingCart newCart = ShoppingCart.newShoppingCart(
+          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+
+      assertThat(newCart.totalItems()).isEqualTo(Quantity.ZERO);
+    }
+
+    @Test
+    @DisplayName("Should create a new cart with empty items collection")
+    void shouldCreateNewCartWithEmptyItems() {
+      ShoppingCart newCart = ShoppingCart.newShoppingCart(
+          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+
+      assertThat(newCart.items()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should create a new cart with non-null id")
+    void shouldCreateNewCartWithNonNullId() {
+      ShoppingCart newCart = ShoppingCart.newShoppingCart(
+          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+
+      assertThat(newCart.shoppingCartId()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should create a new cart with non-null createdAt")
+    void shouldCreateNewCartWithNonNullCreatedAt() {
+      ShoppingCart newCart = ShoppingCart.newShoppingCart(
+          new com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId(UUID.randomUUID()));
+
+      assertThat(newCart.createdAt()).isNotNull();
+    }
   }
 
   @Nested
@@ -93,7 +148,7 @@ class ShoppingCartTest {
       void shouldRecalculateTotalAmountAfterAdding() {
         cart.addItem(product, quantity);
 
-        Money expectedTotal = product.price().multiply(quantity.value().intValue());
+        Money expectedTotal = product.price().multiply(quantity);
         assertThat(cart.totalAmount()).isEqualTo(expectedTotal);
       }
 
@@ -347,7 +402,7 @@ class ShoppingCartTest {
 
         cart.changeQuantityitem(itemId, newQuantity);
 
-        Money expectedAmount = product.price().multiply(5);
+        Money expectedAmount = product.price().multiply(newQuantity);
         assertThat(cart.totalAmount()).isEqualTo(expectedAmount);
       }
     }
@@ -623,6 +678,77 @@ class ShoppingCartTest {
         assertThat(cart.totalItems()).isEqualTo(Quantity.ZERO);
         assertThat(cart.totalAmount()).isEqualTo(Money.ZERO);
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("equals and hashCode")
+  class EqualsAndHashCode {
+
+    @Test
+    @DisplayName("Should be equal when same shopping cart id")
+    void shouldBeEqualWhenSameShoppingCartId() {
+      ShoppingCartId cartId = new ShoppingCartId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+      CustomerId customerId = new CustomerId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001"));
+
+      ShoppingCart cart1 = ShoppingCart.existingShoppingCartBuilder()
+          .shoppingCartId(cartId)
+          .customerId(customerId)
+          .totalAmount(Money.ZERO)
+          .totalItems(Quantity.ZERO)
+          .createdAt(OffsetDateTime.now())
+          .items(new HashSet<>())
+          .build();
+
+      ShoppingCart cart2 = ShoppingCart.existingShoppingCartBuilder()
+          .shoppingCartId(cartId)
+          .customerId(customerId)
+          .totalAmount(Money.ZERO)
+          .totalItems(Quantity.ZERO)
+          .createdAt(OffsetDateTime.now())
+          .items(new HashSet<>())
+          .build();
+
+      assertThat(cart1).isEqualTo(cart2);
+      assertThat(cart1.hashCode()).isEqualTo(cart2.hashCode());
+    }
+
+    @Test
+    @DisplayName("Should not be equal when different shopping cart id")
+    void shouldNotBeEqualWhenDifferentShoppingCartId() {
+      CustomerId customerId = new CustomerId(UUID.fromString("660e8400-e29b-41d4-a716-446655440001"));
+
+      ShoppingCart cart1 = ShoppingCart.existingShoppingCartBuilder()
+          .shoppingCartId(new ShoppingCartId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000")))
+          .customerId(customerId)
+          .totalAmount(Money.ZERO)
+          .totalItems(Quantity.ZERO)
+          .createdAt(OffsetDateTime.now())
+          .items(new HashSet<>())
+          .build();
+
+      ShoppingCart cart2 = ShoppingCart.existingShoppingCartBuilder()
+          .shoppingCartId(new ShoppingCartId(UUID.fromString("770e8400-e29b-41d4-a716-446655440002")))
+          .customerId(customerId)
+          .totalAmount(Money.ZERO)
+          .totalItems(Quantity.ZERO)
+          .createdAt(OffsetDateTime.now())
+          .items(new HashSet<>())
+          .build();
+
+      assertThat(cart1).isNotEqualTo(cart2);
+    }
+
+    @Test
+    @DisplayName("Should not be equal to null")
+    void shouldNotBeEqualToNull() {
+      assertThat(cart).isNotEqualTo(null);
+    }
+
+    @Test
+    @DisplayName("Should not be equal to different class")
+    void shouldNotBeEqualToDifferentClass() {
+      assertThat(cart).isNotEqualTo("not a shopping cart");
     }
   }
 }

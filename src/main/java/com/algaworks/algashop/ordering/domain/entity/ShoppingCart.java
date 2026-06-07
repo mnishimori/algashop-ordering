@@ -10,6 +10,7 @@ import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.ShoppingCartItemId;
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
@@ -22,6 +23,17 @@ public class ShoppingCart {
   private Quantity totalItems;
   private OffsetDateTime createdAt;
   private Set<ShoppingCartItem> items;
+
+  public static ShoppingCart newShoppingCart(CustomerId customerId) {
+    return new ShoppingCart(
+        new ShoppingCartId(),
+        customerId,
+        Money.ZERO,
+        Quantity.ZERO,
+        OffsetDateTime.now(),
+        new HashSet<>()
+    );
+  }
 
   @Builder(builderClassName = "ShoppingCartBuilder", builderMethodName = "existingShoppingCartBuilder")
   public ShoppingCart(ShoppingCartId shoppingCartId, CustomerId customerId, Money totalAmount, Quantity totalItems,
@@ -56,11 +68,7 @@ public class ShoppingCart {
   }
 
   private void addNewItem(Product product, Quantity quantity) {
-    var shoppingCartItem = ShoppingCartItem.draftShoppingCartItemBuilder()
-        .shoppingCartId(this.shoppingCartId)
-        .product(product)
-        .quantity(quantity)
-        .build();
+    var shoppingCartItem = ShoppingCartItem.brandNew(this.shoppingCartId, product, quantity);
     this.items.add(shoppingCartItem);
   }
 

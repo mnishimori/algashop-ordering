@@ -118,6 +118,18 @@ class MoneyTest {
   }
 
   @Test
+  @DisplayName("Should multiply Money by Quantity and return new Money")
+  void shouldMultiplyMoneyByQuantityAndReturnNewMoney() {
+    var money = new Money("3.00");
+    var quantity = new Quantity(new BigDecimal("4"));
+
+    var result = money.multiply(quantity);
+
+    assertThat(result.value()).isEqualByComparingTo(new BigDecimal("12.00"));
+    assertThat(money.value()).isEqualByComparingTo(new BigDecimal("3.00"));
+  }
+
+  @Test
   @DisplayName("Should divide Money by other Money and return new Money")
   void shouldDivideMoneyByOtherMoneyAndReturnNewMoney() {
     var money = new Money("10.00");

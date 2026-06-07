@@ -1,5 +1,6 @@
 package com.algaworks.algashop.ordering.domain.entity;
 
+import com.algaworks.algashop.ordering.domain.exception.ShoppingCartItemIncompatibleProductException;
 import com.algaworks.algashop.ordering.domain.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.valueobject.Product;
 import com.algaworks.algashop.ordering.domain.valueobject.ProductName;
@@ -34,8 +35,7 @@ public class ShoppingCartItem {
     setAvailable(available);
   }
 
-  @Builder(builderClassName = "DraftShoppingCartItemBuilder", builderMethodName = "draftShoppingCartItemBuilder")
-  private static ShoppingCartItem draftShoppingCartItem(ShoppingCartId shoppingCartId, Product product,
+  public static ShoppingCartItem brandNew(ShoppingCartId shoppingCartId, Product product,
       Quantity quantity) {
     Objects.requireNonNull(shoppingCartId);
     Objects.requireNonNull(product);
@@ -78,13 +78,37 @@ public class ShoppingCartItem {
     return available;
   }
 
+  public void recalculateTotals() {
+    this.totalAmount = this.price().multiply(this.quantity());
+  }
+
   private void recalculateTotalItemAmount() {
-    this.totalAmount = this.price().multiply(this.quantity().value().intValue());
+    this.totalAmount = this.price().multiply(this.quantity());
+  }
+
+  void changeQuantity(Quantity quantity) {
+    Objects.requireNonNull(quantity);
+    if (quantity.value().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("Quantity must be greater than 0");
+    }
+    this.setQuantity(quantity);
+    this.recalculateTotalItemAmount();
   }
 
   void updateQuantity(Quantity quantity) {
     Objects.requireNonNull(quantity);
     this.setQuantity(quantity);
+    this.recalculateTotalItemAmount();
+  }
+
+  void refresh(Product product) {
+    Objects.requireNonNull(product);
+    if (!this.product.equals(product.id())) {
+      throw new ShoppingCartItemIncompatibleProductException("Product ID mismatch");
+    }
+    this.setPrice(product.price());
+    this.setProductName(product.name());
+    this.setAvailable(product.inStock());
     this.recalculateTotalItemAmount();
   }
 

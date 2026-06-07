@@ -37,6 +37,10 @@ public record Money(BigDecimal value) implements Comparable<Money>{
     return new Money(this.value.multiply(new BigDecimal(quantity)));
   }
 
+  public Money multiply(Quantity quantity) {
+    return new Money(this.value.multiply(quantity.value()));
+  }
+
   public Money divide(Money other) {
     return new Money(this.value.divide(other.value, SCALE, HALF_EVEN));
   }
