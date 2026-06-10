@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 
-public class Order {
+public class Order implements AggregateRoot<OrderId>{
 
   private OrderId id;
   private CustomerId customerId;

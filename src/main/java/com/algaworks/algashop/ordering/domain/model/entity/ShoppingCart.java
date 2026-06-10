@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 
-public class ShoppingCart {
+public class ShoppingCart implements AggregateRoot<ShoppingCartId>{
 
   private ShoppingCartId shoppingCartId;
   private CustomerId customerId;
@@ -214,5 +214,10 @@ public class ShoppingCart {
   @Override
   public int hashCode() {
     return Objects.hashCode(shoppingCartId);
+  }
+
+  @Override
+  public ShoppingCartId id() {
+    return null;
   }
 }

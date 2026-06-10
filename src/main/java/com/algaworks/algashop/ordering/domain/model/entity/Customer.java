@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Builder;
 
-public class Customer {
+public class Customer implements AggregateRoot<CustomerId>{
 
   private CustomerId id;
   private FullName fullName;
