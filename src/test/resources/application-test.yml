@@ -2,7 +2,7 @@ spring:
   application:
     name: ordering
   datasource:
-    url: jdbc:h2:file:~/algashop-ordering;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true
+    url: jdbc:h2:mem:~/algashop-ordering-test;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true
     username: sa
     password: 123
     driver-class-name: org.h2.Driver

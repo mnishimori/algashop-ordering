@@ -35,6 +35,21 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.named('test', Test) {
+	description = 'Runs the unit tests.'
+	group = 'verification'
+	useJUnitPlatform({
+		excludeTags 'integrationTest'
+	})
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	shouldRunAfter tasks.named('test')
+	useJUnitPlatform {
+		includeTags 'integrationTest'
+	}
 }
