@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -12,6 +13,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "orders")
@@ -21,6 +26,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(of = "id")
+@EntityListeners(AuditingEntityListener.class)
 public class OrderPersistenceEntity {
 
   @Id
@@ -36,4 +42,10 @@ public class OrderPersistenceEntity {
   private OffsetDateTime deliveredAt;
   private OffsetDateTime readyAt;
 
+  @CreatedBy
+  private UUID createdByUserId;
+  @LastModifiedBy
+  private UUID lastModifiedByUserId;
+  @LastModifiedDate
+  private OffsetDateTime lastModifiedAt;
 }
