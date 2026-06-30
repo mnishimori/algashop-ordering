@@ -140,6 +140,8 @@ public class Order implements AggregateRoot<OrderId>{
 
   public boolean isCanceled() { return OrderStatus.CANCELED.equals(this.status);}
 
+  public boolean isPaid() { return OrderStatus.PAID.equals(this.status);}
+
   public void removeItem(OrderItemId orderItemId) {
     Objects.requireNonNull(orderItemId);
     this.verifyIfOrderChangeable();
@@ -153,6 +155,11 @@ public class Order implements AggregateRoot<OrderId>{
     this.verifyIfCanChangeToReady();
     this.changeStatus(OrderStatus.READY);
     this.setReadyAt(OffsetDateTime.now());
+  }
+
+  public void markAsPaid() {
+    this.changeStatus(OrderStatus.PAID);
+    this.setPaidAt(OffsetDateTime.now());
   }
 
   private void verifyIfCanChangeToReady() {

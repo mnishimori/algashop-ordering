@@ -5,6 +5,7 @@ import com.algaworks.algashop.ordering.domain.model.repository.Orders;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,23 @@ public class OrdersPersistenceProvider implements Orders {
 
   @Override
   public void add(Order aggregateRoot) {
-    var entity = assembler.fromDomain(aggregateRoot);
-    repository.save(entity);
+    var orderId = aggregateRoot.id();
+    var persistenceEntity = repository.findById(orderId.value().toLong());
+    if (persistenceEntity.isPresent()) {
+      update(aggregateRoot, persistenceEntity.get());
+    } else {
+      insert(aggregateRoot);
+    }
+  }
+
+  private void update(Order aggregateRoot, OrderPersistenceEntity persistenceEntity) {
+    var persistenceEntityMerged = assembler.merge(persistenceEntity, aggregateRoot);
+    repository.save(persistenceEntityMerged);
+  }
+
+  private void insert(Order aggregateRoot) {
+    var persistenceEntity = assembler.fromDomain(aggregateRoot);
+    repository.save(persistenceEntity);
   }
 
   @Override
