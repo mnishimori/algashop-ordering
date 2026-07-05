@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 
-public class Order implements AggregateRoot<OrderId>{
+public class Order implements AggregateRoot<OrderId> {
 
   private OrderId id;
   private CustomerId customerId;
@@ -38,12 +38,15 @@ public class Order implements AggregateRoot<OrderId>{
   private PaymentMethod paymentMethod;
   private Set<OrderItem> items;
   private OrderStatus status;
+  private Long version;
 
   @Builder(builderClassName = "OrderBuilder", builderMethodName = "existingOrderBuilder")
-  public Order(OrderId id, CustomerId customerId, Money totalAmount, Quantity totalItems, OffsetDateTime placedAt,
+  public Order(OrderId id, Long version, CustomerId customerId, Money totalAmount, Quantity totalItems,
+      OffsetDateTime placedAt,
       OffsetDateTime paidAt, OffsetDateTime canceledAt, OffsetDateTime readyAt, Billing billing,
       Shipping shipping, OrderStatus status, PaymentMethod paymentMethod, Set<OrderItem> items) {
     setId(id);
+    setVersion(version);
     setCustomerId(customerId);
     setTotalAmount(totalAmount);
     setTotalItems(totalItems);
@@ -59,7 +62,7 @@ public class Order implements AggregateRoot<OrderId>{
   }
 
   public static Order createDraftOrder(CustomerId customerId) {
-    return new Order(new OrderId(), customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
+    return new Order(new OrderId(), 0L, customerId, Money.ZERO, Quantity.ZERO, null, null, null, null, null, null,
         OrderStatus.DRAFT, null, new LinkedHashSet<>());
   }
 
@@ -138,9 +141,13 @@ public class Order implements AggregateRoot<OrderId>{
     return OrderStatus.PLACED.equals(this.status);
   }
 
-  public boolean isCanceled() { return OrderStatus.CANCELED.equals(this.status);}
+  public boolean isCanceled() {
+    return OrderStatus.CANCELED.equals(this.status);
+  }
 
-  public boolean isPaid() { return OrderStatus.PAID.equals(this.status);}
+  public boolean isPaid() {
+    return OrderStatus.PAID.equals(this.status);
+  }
 
   public void removeItem(OrderItemId orderItemId) {
     Objects.requireNonNull(orderItemId);
@@ -184,7 +191,7 @@ public class Order implements AggregateRoot<OrderId>{
     var totalAmount = this.items.stream()
         .map(OrderItem::totalAmount)
         .reduce(Money.ZERO, Money::add);
-    var shipping = this.shippingInfo() != null && this.shippingInfo().shippingCost() != null 
+    var shipping = this.shippingInfo() != null && this.shippingInfo().shippingCost() != null
         ? this.shippingInfo().shippingCost() : Money.ZERO;
     this.setTotalAmount(totalAmount.add(shipping));
   }
@@ -324,6 +331,14 @@ public class Order implements AggregateRoot<OrderId>{
   private void setItems(Set<OrderItem> items) {
     Objects.requireNonNull(items);
     this.items = items;
+  }
+
+  public Long version() {
+    return version;
+  }
+
+  private void setVersion(Long version) {
+    this.version = version;
   }
 
   @Override

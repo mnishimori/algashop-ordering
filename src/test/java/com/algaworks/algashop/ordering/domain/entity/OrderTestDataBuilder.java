@@ -31,6 +31,7 @@ public class OrderTestDataBuilder {
   private OrderStatus status;
   private PaymentMethod paymentMethod;
   private Set<OrderItem> items;
+  private Long version;
 
   private OrderTestDataBuilder() {
     this.id = new OrderId(TSID.from(123456789L));
@@ -46,6 +47,7 @@ public class OrderTestDataBuilder {
     this.status = OrderStatus.DRAFT;
     this.paymentMethod = null;
     this.items = new LinkedHashSet<>();
+    this.version = 0L;
   }
 
   public static OrderTestDataBuilder anOrder() {
@@ -118,7 +120,7 @@ public class OrderTestDataBuilder {
   }
 
   public Order build() {
-    return new Order(id, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt, readyAt,
+    return new Order(id, version, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt, readyAt,
         billing, shipping, status, paymentMethod, items);
   }
 }

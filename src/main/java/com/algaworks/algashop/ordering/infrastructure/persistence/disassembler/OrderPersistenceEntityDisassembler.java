@@ -32,6 +32,7 @@ public class OrderPersistenceEntityDisassembler {
         .billing(null)
         .shipping(null)
         .items(Collections.emptySet())
+        .version(orderPersistenceEntity.getVersion())
         .build();
   }
 }

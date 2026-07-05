@@ -55,7 +55,7 @@ class OrderTest {
     PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
     Set<OrderItem> items = new HashSet<>();
 
-    Order order = new Order(orderId, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt,
+    Order order = new Order(orderId, 0L, customerId, totalAmount, totalItems, placedAt, paidAt, canceledAt,
         readyAt, null, null, status, paymentMethod, items);
 
     assertThat(order.id()).isEqualTo(orderId);
@@ -93,7 +93,7 @@ class OrderTest {
     Quantity totalItems = Quantity.ZERO;
     Set<OrderItem> items = new HashSet<>();
 
-    Order order = new Order(orderId, customerId, totalAmount, totalItems, null, null, null, null, null, null,
+    Order order = new Order(orderId, 0L, customerId, totalAmount, totalItems, null, null, null, null, null, null,
         OrderStatus.DRAFT, null, items);
 
     assertThat(order.id()).isNotNull();

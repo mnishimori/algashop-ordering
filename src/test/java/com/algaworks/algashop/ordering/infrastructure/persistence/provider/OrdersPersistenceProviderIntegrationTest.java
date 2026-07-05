@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
@@ -12,6 +13,7 @@ import com.algaworks.algashop.ordering.infrastructure.persistence.repository.Ord
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 @IntegrationTest
 @Import({OrdersPersistenceProvider.class, OrderPersistenceEntityDisassembler.class,

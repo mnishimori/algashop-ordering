@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -41,11 +42,12 @@ public class OrderPersistenceEntity {
   private OffsetDateTime canceledAt;
   private OffsetDateTime deliveredAt;
   private OffsetDateTime readyAt;
-
   @CreatedBy
   private UUID createdByUserId;
   @LastModifiedBy
   private UUID lastModifiedByUserId;
   @LastModifiedDate
   private OffsetDateTime lastModifiedAt;
+  @Version
+  private Long version;
 }
