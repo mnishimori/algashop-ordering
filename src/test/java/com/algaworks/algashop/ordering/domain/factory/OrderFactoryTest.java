@@ -16,7 +16,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Phone;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Product;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Recepient;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Recipient;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Shipping;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
@@ -140,11 +140,11 @@ class OrderFactoryTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
     return Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(10))
-        .recepient(recepient)
+        .recipient(recepient)
         .address(address)
         .build();
   }

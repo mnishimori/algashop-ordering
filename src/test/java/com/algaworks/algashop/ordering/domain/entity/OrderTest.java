@@ -22,7 +22,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Phone;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Recepient;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Recipient;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Shipping;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
@@ -538,11 +538,11 @@ class OrderTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(10))
-        .recepient(recepient)
+        .recipient(recepient)
         .address(address)
         .build();
     var order = OrderTestDataBuilder.anOrder().shippingInfo(shippingInfo).build();
@@ -710,7 +710,7 @@ class OrderTest {
     order.changeShipping(Shipping.builder()
         .shippingCost(new Money("10.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(7))
-        .recepient(new Recepient(
+        .recipient(new Recipient(
             new FullName("John", "Doe"),
             new Document("12345678900"),
             new Phone("11999999999")))
@@ -815,11 +815,11 @@ class OrderTest {
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(10))
-        .recepient(recepient)
+        .recipient(recepient)
         .address(address)
         .build();
 
@@ -844,7 +844,7 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
 
     assertThatThrownBy(() -> {
       var zipCode = new ZipCode("12345-678");
@@ -853,7 +853,7 @@ class OrderTest {
       var shippingInfo = Shipping.builder()
           .shippingCost(null)
           .expectedDeliveryDate(LocalDate.now().plusDays(10))
-          .recepient(recepient)
+          .recipient(recepient)
           .address(address)
           .build();
       order.changeShipping(shippingInfo);
@@ -867,7 +867,7 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
 
     assertThatThrownBy(() -> {
       var zipCode = new ZipCode("12345-678");
@@ -876,7 +876,7 @@ class OrderTest {
       var shippingInfo = Shipping.builder()
           .shippingCost(new Money("25.00"))
           .expectedDeliveryDate(null)
-          .recepient(recepient)
+          .recipient(recepient)
           .address(address)
           .build();
       order.changeShipping(shippingInfo);
@@ -890,14 +890,14 @@ class OrderTest {
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
     var phone = new Phone("11888888888");
-    var recepient = new Recepient(fullName, document, phone);
+    var recepient = new Recipient(fullName, document, phone);
     var zipCode = new ZipCode("12345-678");
     var address = new Address("Main Street", "123", "Apt 1",
         "Downtown", "New York", "NY", zipCode);
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().minusDays(1))
-        .recepient(recepient)
+        .recipient(recepient)
         .address(address)
         .build();
 
@@ -1191,7 +1191,7 @@ class OrderTest {
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(10))
-        .recepient(new Recepient(
+        .recipient(new Recipient(
             new FullName("Jane", "Smith"),
             new Document("98765432100"),
             new Phone("11888888888")))
@@ -1224,7 +1224,7 @@ class OrderTest {
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(10))
-        .recepient(new Recepient(
+        .recipient(new Recipient(
             new FullName("Jane", "Smith"),
             new Document("98765432100"),
             new Phone("11888888888")))
@@ -1641,7 +1641,7 @@ class OrderTest {
     order.changeShipping(Shipping.builder()
         .shippingCost(new Money("10.00"))
         .expectedDeliveryDate(LocalDate.now().plusDays(7))
-        .recepient(new Recepient(
+        .recipient(new Recipient(
             new FullName("John", "Doe"),
             new Document("12345678900"),
             new Phone("11999999999")))

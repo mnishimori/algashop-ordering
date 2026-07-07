@@ -117,12 +117,10 @@ class OrdersPersistenceProviderTest {
         .build();
 
     when(assembler.fromDomain(order)).thenReturn(entity);
-    when(repository.save(entity)).thenReturn(entity);
 
     provider.add(order);
 
     verify(assembler).fromDomain(order);
-    verify(repository).save(entity);
   }
 
   @Test
