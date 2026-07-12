@@ -43,8 +43,8 @@ class OrderFactoryTest {
 
     assertThat(order).isNotNull();
     assertThat(order.customerId()).isEqualTo(customerId);
-    assertThat(order.shippingInfo()).isEqualTo(shipping);
-    assertThat(order.billingInfo()).isEqualTo(billing);
+    assertThat(order.shipping()).isEqualTo(shipping);
+    assertThat(order.billing()).isEqualTo(billing);
     assertThat(order.paymentMethod()).isEqualTo(paymentMethod);
   }
 

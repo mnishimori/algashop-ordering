@@ -176,18 +176,18 @@ class OrderTest {
 
   @Test
   @DisplayName("Should allow null billingInfo")
-  void shouldAllowNullBillingInfo() {
+  void shouldAllowNullBilling() {
     Order order = OrderTestDataBuilder.anOrder().billingInfo(null).build();
 
-    assertThat(order.billingInfo()).isNull();
+    assertThat(order.billing()).isNull();
   }
 
   @Test
   @DisplayName("Should allow null shippingInfo")
-  void shouldAllowNullShippingInfo() {
+  void shouldAllowNullShipping() {
     Order order = OrderTestDataBuilder.anOrder().shippingInfo(null).build();
 
-    assertThat(order.shippingInfo()).isNull();
+    assertThat(order.shipping()).isNull();
   }
 
   @Test
@@ -509,7 +509,7 @@ class OrderTest {
 
   @Test
   @DisplayName("Should return billingInfo")
-  void shouldReturnBillingInfo() {
+  void shouldReturnBilling() {
     var fullName = new FullName("John", "Doe");
     var document = new Document("12345678900");
     var phone = new Phone("11999999999");
@@ -526,12 +526,12 @@ class OrderTest {
         .build();
     var order = OrderTestDataBuilder.anOrder().billingInfo(billingInfo).build();
 
-    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+    assertThat(order.billing()).isEqualTo(billingInfo);
   }
 
   @Test
   @DisplayName("Should return shippingInfo")
-  void shouldReturnShippingInfo() {
+  void shouldReturnShipping() {
     var fullName = new FullName("John", "Doe");
     var document = new Document("12345678900");
     var phone = new Phone("11999999999");
@@ -547,7 +547,7 @@ class OrderTest {
         .build();
     var order = OrderTestDataBuilder.anOrder().shippingInfo(shippingInfo).build();
 
-    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+    assertThat(order.shipping()).isEqualTo(shippingInfo);
   }
 
   @Test
@@ -660,8 +660,8 @@ class OrderTest {
         .paidAt(order.paidAt())
         .canceledAt(order.canceledAt())
         .readyAt(order.readyAt())
-        .billing(order.billingInfo())
-        .shipping(order.shippingInfo())
+        .billing(order.billing())
+        .shipping(order.shipping())
         .status(order.status())
         .paymentMethod(order.paymentMethod())
         .items(order.items())
@@ -742,8 +742,8 @@ class OrderTest {
         .paidAt(order.paidAt())
         .canceledAt(order.canceledAt())
         .readyAt(order.readyAt())
-        .billing(order.billingInfo())
-        .shipping(order.shippingInfo())
+        .billing(order.billing())
+        .shipping(order.shipping())
         .status(OrderStatus.PLACED)
         .paymentMethod(order.paymentMethod())
         .items(order.items())
@@ -774,7 +774,7 @@ class OrderTest {
 
   @Test
   @DisplayName("Should change billing info successfully")
-  void shouldChangeBillingInfoSuccessfully() {
+  void shouldChangeBillingSuccessfully() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
     var fullName = new FullName("John", "Doe");
     var document = new Document("12345678900");
@@ -793,12 +793,12 @@ class OrderTest {
 
     order.changeBilling(billingInfo);
 
-    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+    assertThat(order.billing()).isEqualTo(billingInfo);
   }
 
   @Test
   @DisplayName("Should throw exception when change billing info with null")
-  void shouldThrowExceptionWhenChangeBillingInfoWithNull() {
+  void shouldThrowExceptionWhenChangeBillingWithNull() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     assertThatThrownBy(() -> order.changeBilling(null))
@@ -807,7 +807,7 @@ class OrderTest {
 
   @Test
   @DisplayName("Should change shipping info successfully")
-  void shouldChangeShippingInfoSuccessfully() {
+  void shouldChangeShippingSuccessfully() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
     var fullName = new FullName("Jane", "Smith");
     var document = new Document("98765432100");
@@ -825,12 +825,12 @@ class OrderTest {
 
     order.changeShipping(shippingInfo);
 
-    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+    assertThat(order.shipping()).isEqualTo(shippingInfo);
   }
 
   @Test
   @DisplayName("Should throw exception when change shipping with null shipping info")
-  void shouldThrowExceptionWhenChangeShippingWithNullShippingInfo() {
+  void shouldThrowExceptionWhenChangeShippingWithNullShipping() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
 
     assertThatThrownBy(() -> order.changeShipping(null))
@@ -1132,7 +1132,7 @@ class OrderTest {
 
   @Test
   @DisplayName("Should allow changing billing info when order is in DRAFT status")
-  void shouldAllowChangingBillingInfoWhenOrderIsInDraftStatus() {
+  void shouldAllowChangingBillingWhenOrderIsInDraftStatus() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
     var billingInfo = Billing.builder()
         .fullName(new FullName("John", "Doe"))
@@ -1151,12 +1151,12 @@ class OrderTest {
 
     order.changeBilling(billingInfo);
 
-    assertThat(order.billingInfo()).isEqualTo(billingInfo);
+    assertThat(order.billing()).isEqualTo(billingInfo);
   }
 
   @Test
   @DisplayName("Should throw exception when changing billing info on PAID order")
-  void shouldThrowExceptionWhenChangingBillingInfoOnPaidOrder() {
+  void shouldThrowExceptionWhenChangingBillingOnPaidOrder() {
     var order = Order.existingOrderBuilder()
         .id(new OrderId())
         .customerId(new CustomerId(UUID.randomUUID()))
@@ -1186,7 +1186,7 @@ class OrderTest {
 
   @Test
   @DisplayName("Should allow changing shipping info when order is in DRAFT status")
-  void shouldAllowChangingShippingInfoWhenOrderIsInDraftStatus() {
+  void shouldAllowChangingShippingWhenOrderIsInDraftStatus() {
     var order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
     var shippingInfo = Shipping.builder()
         .shippingCost(new Money("25.00"))
@@ -1207,12 +1207,12 @@ class OrderTest {
 
     order.changeShipping(shippingInfo);
 
-    assertThat(order.shippingInfo()).isEqualTo(shippingInfo);
+    assertThat(order.shipping()).isEqualTo(shippingInfo);
   }
 
   @Test
   @DisplayName("Should throw exception when changing shipping info on READY order")
-  void shouldThrowExceptionWhenChangingShippingInfoOnReadyOrder() {
+  void shouldThrowExceptionWhenChangingShippingOnReadyOrder() {
     var order = Order.existingOrderBuilder()
         .id(new OrderId())
         .customerId(new CustomerId(UUID.randomUUID()))
@@ -1585,8 +1585,8 @@ class OrderTest {
         .paidAt(order.paidAt())
         .canceledAt(order.canceledAt())
         .readyAt(order.readyAt())
-        .billing(order.billingInfo())
-        .shipping(order.shippingInfo())
+        .billing(order.billing())
+        .shipping(order.shipping())
         .status(OrderStatus.PAID)
         .paymentMethod(order.paymentMethod())
         .items(order.items())

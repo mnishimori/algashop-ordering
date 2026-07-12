@@ -88,10 +88,10 @@ public class Order implements AggregateRoot<OrderId> {
   }
 
   private void verifyIfCanChangeToPlaced() {
-    if (this.shippingInfo() == null) {
+    if (this.shipping() == null) {
       throw OrderCannotBePlacedException.noShippingInfo(this.id());
     }
-    if (this.billingInfo() == null) {
+    if (this.billing() == null) {
       throw OrderCannotBePlacedException.noBillingInfo(this.id());
     }
     if (this.paymentMethod() == null) {
@@ -191,8 +191,8 @@ public class Order implements AggregateRoot<OrderId> {
     var totalAmount = this.items.stream()
         .map(OrderItem::totalAmount)
         .reduce(Money.ZERO, Money::add);
-    var shipping = this.shippingInfo() != null && this.shippingInfo().shippingCost() != null
-        ? this.shippingInfo().shippingCost() : Money.ZERO;
+    var shipping = this.shipping() != null && this.shipping().shippingCost() != null
+        ? this.shipping().shippingCost() : Money.ZERO;
     this.setTotalAmount(totalAmount.add(shipping));
   }
 
@@ -255,11 +255,11 @@ public class Order implements AggregateRoot<OrderId> {
     return readyAt;
   }
 
-  public Billing billingInfo() {
+  public Billing billing() {
     return billing;
   }
 
-  public Shipping shippingInfo() {
+  public Shipping shipping() {
     return shipping;
   }
 
