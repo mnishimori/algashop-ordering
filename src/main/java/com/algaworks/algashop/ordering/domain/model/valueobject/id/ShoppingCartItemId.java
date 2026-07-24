@@ -7,7 +7,7 @@ import java.util.UUID;
 public record ShoppingCartItemId(UUID value) {
 
   public ShoppingCartItemId(){
-    var shoppingCartItemId = IdGenerator.generateTimeBasedUuid();
+    var shoppingCartItemId = IdGenerator.generateTimeBasedUUID();
     this(shoppingCartItemId);
   }
 

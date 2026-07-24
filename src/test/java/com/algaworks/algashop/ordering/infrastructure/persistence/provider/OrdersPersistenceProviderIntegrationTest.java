@@ -1,19 +1,22 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
+import com.algaworks.algashop.ordering.domain.entity.OrderItemTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.config.SpringDataAuditingConfig;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
+import io.hypersistence.tsid.TSID;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 @IntegrationTest
 @Import({OrdersPersistenceProvider.class, OrderPersistenceEntityDisassembler.class,
@@ -32,8 +35,21 @@ class OrdersPersistenceProviderIntegrationTest {
 
   @Test
   void shouldUpdateAndKeepPersistenceEntityState() {
-    var order = OrderTestDataBuilder.anOrder().status(OrderStatus.PLACED).build();
-    var orderId = order.id();
+    var orderId = new OrderId(TSID.from(123456789L));
+    var order = OrderTestDataBuilder.anOrder()
+        .id(orderId)
+        .status(OrderStatus.PLACED)
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId)
+                .build(),
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId)
+                .build()
+        ))
+        .build();
     persistenceProvider.add(order);
 
     var orderPersistenceEntity = repository.findById(orderId.value().toLong()).orElseThrow();
@@ -44,6 +60,8 @@ class OrdersPersistenceProviderIntegrationTest {
     assertThat(orderPersistenceEntity.getCreatedByUserId()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedAt()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedByUserId()).isNotNull();
+    assertThat(orderPersistenceEntity.getItems()).isNotNull();
+    assertThat(orderPersistenceEntity.getItems()).hasSize(2);
 
     order = persistenceProvider.findById(orderId).orElseThrow();
     order.markAsPaid();
@@ -57,5 +75,7 @@ class OrdersPersistenceProviderIntegrationTest {
     assertThat(orderPersistenceEntity.getCreatedByUserId()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedAt()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedByUserId()).isNotNull();
+    assertThat(orderPersistenceEntity.getItems()).isNotNull();
+    assertThat(orderPersistenceEntity.getItems()).hasSize(2);
   }
 }

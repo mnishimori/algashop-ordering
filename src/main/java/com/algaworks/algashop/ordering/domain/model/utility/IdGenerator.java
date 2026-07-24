@@ -15,11 +15,23 @@ public class IdGenerator {
   private IdGenerator() {
   }
 
-  public static UUID generateTimeBasedUuid() {
+  public static UUID generateTimeBasedUUID() {
     return timeBasedEpochRandomGenerator.generate();
   }
 
   public static TSID generateTimeBasedTsid() {
     return tsidFactory.generate();
+  }
+
+  public static TSID generateTSID() {
+    return tsidFactory.generate();
+  }
+
+  public static TSID generateTSID(String value) {
+    return TSID.from(value);
+  }
+
+  public static TSID generateTSID(Long value) {
+    return TSID.from(value);
   }
 }

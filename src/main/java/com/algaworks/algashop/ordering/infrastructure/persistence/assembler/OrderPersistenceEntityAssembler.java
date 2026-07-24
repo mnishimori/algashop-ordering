@@ -1,11 +1,15 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.assembler;
 
 import com.algaworks.algashop.ordering.domain.model.entity.Order;
+import com.algaworks.algashop.ordering.domain.model.entity.OrderItem;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Recipient;
 import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.AddressEmbeddable;
 import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.RecipientEmbeddable;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderItemPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,6 +32,7 @@ public class OrderPersistenceEntityAssembler {
     orderPersistenceEntity.setReadyAt(order.readyAt());
     setBillingInformation(orderPersistenceEntity, order);
     setShippingInformation(orderPersistenceEntity, order);
+    setItems(orderPersistenceEntity, order);
     return orderPersistenceEntity;
   }
 
@@ -99,5 +104,25 @@ public class OrderPersistenceEntityAssembler {
     if (address.zipCode() != null) {
       addressEmbeddable.setZipCode(address.zipCode().toString());
     }
+  }
+
+  private void setItems(OrderPersistenceEntity orderPersistenceEntity, Order order) {
+    if (order.items() == null || order.items().isEmpty()) {
+      return;
+    }
+    Set<OrderItemPersistenceEntity> items = new HashSet<>();
+    for (OrderItem orderItem : order.items()) {
+      var itemEntity = OrderItemPersistenceEntity.builder()
+          .id(orderItem.id().value().toLong())
+          .productId(orderItem.productId().value())
+          .productName(orderItem.productName().value())
+          .price(orderItem.price().value())
+          .quantity(orderItem.quantity().value().intValue())
+          .totalAmount(orderItem.totalAmount().value())
+          .order(orderPersistenceEntity)
+          .build();
+      items.add(itemEntity);
+    }
+    orderPersistenceEntity.setItems(items);
   }
 }

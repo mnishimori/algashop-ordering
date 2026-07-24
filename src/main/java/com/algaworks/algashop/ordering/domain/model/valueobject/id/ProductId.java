@@ -7,7 +7,7 @@ import java.util.UUID;
 public record ProductId(UUID value) {
 
   public ProductId(){
-    var customerId = IdGenerator.generateTimeBasedUuid();
+    var customerId = IdGenerator.generateTimeBasedUUID();
     this(customerId);
   }
 
