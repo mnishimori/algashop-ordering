@@ -18,7 +18,6 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -116,10 +115,10 @@ public class OrderPersistenceEntity {
     this.version = version;
     this.billingEmbeddable = billingEmbeddable;
     this.shippingEmbeddable = shippingEmbeddable;
-    this.replaceItems(items);
+    this.addOrderIntoItems(items);
   }
 
-  public void replaceItems(Set<OrderItemPersistenceEntity> items) {
+  public void addOrderIntoItems(Set<OrderItemPersistenceEntity> items) {
     if (items == null || items.isEmpty()) {
       this.setItems(new HashSet<>());
       return;
@@ -128,7 +127,7 @@ public class OrderPersistenceEntity {
     this.setItems(new HashSet<>(items));
   }
 
-  public void addItem(OrderItemPersistenceEntity item) {
+  public void addOrderIntoItem(OrderItemPersistenceEntity item) {
     if (item == null) {
       return;
     }

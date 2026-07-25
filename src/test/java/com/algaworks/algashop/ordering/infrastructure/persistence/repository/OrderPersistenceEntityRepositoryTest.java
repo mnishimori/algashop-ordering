@@ -20,7 +20,7 @@ class OrderPersistenceEntityRepositoryTest {
 
   @Test
   void shouldPersist() {
-    OrderPersistenceEntity order = OrderPersistenceEntityTestDataBuilder.existingOrder().build();
+    var order = OrderPersistenceEntityTestDataBuilder.existingOrder().build();
 
     repository.saveAndFlush(order);
 
