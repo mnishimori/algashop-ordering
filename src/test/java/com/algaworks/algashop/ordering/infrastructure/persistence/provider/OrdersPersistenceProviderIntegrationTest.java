@@ -6,12 +6,12 @@ import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.OrderItemTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.config.SpringDataAuditingConfig;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
-import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
-import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
 import io.hypersistence.tsid.TSID;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -23,8 +23,8 @@ import org.springframework.context.annotation.Import;
     OrderPersistenceEntityAssembler.class, SpringDataAuditingConfig.class})
 class OrdersPersistenceProviderIntegrationTest {
 
-  private OrdersPersistenceProvider persistenceProvider;
-  private OrderPersistenceEntityRepository repository;
+  private final OrdersPersistenceProvider persistenceProvider;
+  private final OrderPersistenceEntityRepository repository;
 
   @Autowired
   OrdersPersistenceProviderIntegrationTest(OrdersPersistenceProvider persistenceProvider,
@@ -50,17 +50,17 @@ class OrdersPersistenceProviderIntegrationTest {
                 .build()
         ))
         .build();
+
     persistenceProvider.add(order);
 
     var orderPersistenceEntity = repository.findById(orderId.value().toLong()).orElseThrow();
-
     assertThat(orderPersistenceEntity).isNotNull();
     assertThat(orderPersistenceEntity.getStatus()).isNotNull();
     assertThat(orderPersistenceEntity.getStatus()).isEqualTo(order.status().name());
     assertThat(orderPersistenceEntity.getCreatedByUserId()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedAt()).isNotNull();
     assertThat(orderPersistenceEntity.getLastModifiedByUserId()).isNotNull();
-    assertThat(orderPersistenceEntity.getItems()).isNotNull();
+    assertThat(orderPersistenceEntity.getItems()).isNotNull().isNotEmpty();
     assertThat(orderPersistenceEntity.getItems()).hasSize(2);
 
     order = persistenceProvider.findById(orderId).orElseThrow();
@@ -68,7 +68,6 @@ class OrdersPersistenceProviderIntegrationTest {
     persistenceProvider.add(order);
 
     orderPersistenceEntity = repository.findById(orderId.value().toLong()).orElseThrow();
-
     assertThat(orderPersistenceEntity).isNotNull();
     assertThat(orderPersistenceEntity.getStatus()).isNotNull();
     assertThat(orderPersistenceEntity.getStatus()).isEqualTo(order.status().name());

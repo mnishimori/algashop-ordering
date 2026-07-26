@@ -64,7 +64,7 @@ class OrderItemTest {
     ProductName productName = new ProductName("Product Name");
     Money price = new Money("50.00");
     Quantity quantity = new Quantity(new BigDecimal(2));
-    Money totalAmount = Money.ZERO;
+    Money totalAmount = new Money("100");
 
     OrderItem orderItem = new OrderItem(id, orderId, productId, productName, price, quantity, totalAmount);
 
@@ -73,7 +73,7 @@ class OrderItemTest {
     assertThat(orderItem.orderId()).isNotNull();
     assertThat(orderItem.orderId().value()).isNotNull();
     assertThat(orderItem.productId()).isNotNull();
-    assertThat(orderItem.totalAmount()).isEqualTo(Money.ZERO);
+    assertThat(orderItem.totalAmount()).isEqualTo(totalAmount);
   }
 
   @Test
@@ -115,13 +115,6 @@ class OrderItemTest {
   @DisplayName("Should throw exception when quantity is null")
   void shouldThrowExceptionWhenQuantityIsNull() {
     assertThatThrownBy(() -> OrderItemTestDataBuilder.anOrderItem().quantity(null).build())
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
-  @DisplayName("Should throw exception when totalAmount is null")
-  void shouldThrowExceptionWhenTotalAmountIsNull() {
-    assertThatThrownBy(() -> OrderItemTestDataBuilder.anOrderItem().totalAmount(null).build())
         .isInstanceOf(NullPointerException.class);
   }
 
@@ -222,7 +215,7 @@ class OrderItemTest {
   @Test
   @DisplayName("Should return totalAmount")
   void shouldReturnTotalAmount() {
-    Money totalAmount = new Money("225.00");
+    Money totalAmount = new Money("100.00");
     OrderItem orderItem = OrderItemTestDataBuilder.anOrderItem().totalAmount(totalAmount).build();
 
     assertThat(orderItem.totalAmount()).isEqualTo(totalAmount);

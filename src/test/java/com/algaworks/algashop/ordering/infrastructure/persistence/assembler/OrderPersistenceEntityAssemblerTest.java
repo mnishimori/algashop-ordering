@@ -2,21 +2,27 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
+import com.algaworks.algashop.ordering.domain.entity.ProductTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.Order;
 import com.algaworks.algashop.ordering.domain.model.entity.OrderItem;
 import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
 import com.algaworks.algashop.ordering.domain.model.entity.PaymentMethod;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntityTestDataBuilder;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -261,5 +267,61 @@ class OrderPersistenceEntityAssemblerTest {
     OrderPersistenceEntity result = assembler.merge(existingEntity, order);
 
     assertThat(result).isSameAs(existingEntity);
+  }
+
+  @Test
+  @DisplayName("Should merge Order with no items into OrderPersistenceEntity with items")
+  void shouldMergeOrderWithNoItemsIntoOrderPersistenceEntityWithItems() {
+    var order = OrderTestDataBuilder.anOrder().build();
+    var orderPersistenceEntity = OrderPersistenceEntityTestDataBuilder.existingOrder().build();
+
+    var result = assembler.merge(orderPersistenceEntity, order);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getItems()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should merge Order with items into OrderPersistenceEntity with no items")
+  void shouldMergeOrderWithItemsIntoOrderPersistenceEntityWithNoItems() {
+    var order = OrderTestDataBuilder.anOrder().withItems(true).build();
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct(new ProductName("Product 1"), new Money("100.00"), true).build(),
+        new Quantity(new BigDecimal(1)));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct(new ProductName("Product 2"), new Money("50.00"), true).build(),
+        new Quantity(new BigDecimal(1)));
+    var orderPersistenceEntity = OrderPersistenceEntityTestDataBuilder.existingOrder().items(new HashSet<>()).build();
+
+    var result = assembler.merge(orderPersistenceEntity, order);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getItems()).isNotNull().isNotEmpty().hasSize(2);
+  }
+
+  @Test
+  @DisplayName("Should merge Order with items into OrderPersistenceEntity with items")
+  void shouldMergeOrderWithItemsIntoOrderPersistenceEntityWithItems() {
+    var order = OrderTestDataBuilder.anOrder().withItems(true).build();
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct(new ProductName("Product 1"), new Money("500.00"), true).build(),
+        new Quantity(new BigDecimal(2)));
+    order.addOrderItem(
+        ProductTestDataBuilder.createProduct(new ProductName("Product 2"), new Money("250.00"), true).build(),
+        new Quantity(new BigDecimal(1)));
+    var orderItems = order.items().stream().map(assembler::fromDomain).collect(Collectors.toSet());
+    var orderPersistenceEntity = OrderPersistenceEntityTestDataBuilder.existingOrder()
+        .build();
+    orderPersistenceEntity.setItems(orderItems);
+    var orderItem = order.items().iterator().next();
+    order.removeItem(orderItem.id());
+
+    var result = assembler.merge(orderPersistenceEntity, order);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getItems()).isNotNull().isNotEmpty().hasSize(1);
   }
 }

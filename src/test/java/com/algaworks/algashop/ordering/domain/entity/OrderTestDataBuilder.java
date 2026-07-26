@@ -32,6 +32,7 @@ public class OrderTestDataBuilder {
   private PaymentMethod paymentMethod;
   private Set<OrderItem> items;
   private Long version;
+  private boolean withItems = true;
 
   private OrderTestDataBuilder() {
     this.id = new OrderId(TSID.from(123456789L));
@@ -116,6 +117,11 @@ public class OrderTestDataBuilder {
 
   public OrderTestDataBuilder items(Set<OrderItem> items) {
     this.items = items;
+    return this;
+  }
+
+  public OrderTestDataBuilder withItems(boolean withItems) {
+    this.withItems = withItems;
     return this;
   }
 

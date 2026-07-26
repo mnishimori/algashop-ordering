@@ -29,7 +29,7 @@ public class OrderItem {
     setProductName(productName);
     setPrice(price);
     setQuantity(quantity);
-    setTotalAmount(totalAmount);
+    this.recalculateTotalItemAmount();
   }
 
   @Builder(builderClassName = "DraftOrderItemBuilder", builderMethodName = "draftOrderItemBuilder")

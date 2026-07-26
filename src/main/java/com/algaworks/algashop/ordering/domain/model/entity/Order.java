@@ -42,9 +42,8 @@ public class Order implements AggregateRoot<OrderId> {
 
   @Builder(builderClassName = "OrderBuilder", builderMethodName = "existingOrderBuilder")
   public Order(OrderId id, Long version, CustomerId customerId, Money totalAmount, Quantity totalItems,
-      OffsetDateTime placedAt,
-      OffsetDateTime paidAt, OffsetDateTime canceledAt, OffsetDateTime readyAt, Billing billing,
-      Shipping shipping, OrderStatus status, PaymentMethod paymentMethod, Set<OrderItem> items) {
+      OffsetDateTime placedAt, OffsetDateTime paidAt, OffsetDateTime canceledAt, OffsetDateTime readyAt,
+      Billing billing, Shipping shipping, OrderStatus status, PaymentMethod paymentMethod, Set<OrderItem> items) {
     setId(id);
     setVersion(version);
     setCustomerId(customerId);
