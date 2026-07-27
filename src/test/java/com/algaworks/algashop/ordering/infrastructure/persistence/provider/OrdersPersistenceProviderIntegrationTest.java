@@ -18,8 +18,6 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @IntegrationTest
 @Import({OrdersPersistenceProvider.class, OrderPersistenceEntityDisassembler.class,
@@ -146,7 +144,6 @@ class OrdersPersistenceProviderIntegrationTest {
   }
 
   @Test
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   void shouldAddOrderAndNotThrowLazyInitializationException() {
     var orderId = new OrderId(TSID.from(123456789L));
     var order = OrderTestDataBuilder.anOrder()
