@@ -77,4 +77,69 @@ class OrdersPersistenceProviderIntegrationTest {
     assertThat(orderPersistenceEntity.getItems()).isNotNull();
     assertThat(orderPersistenceEntity.getItems()).hasSize(2);
   }
+
+  @Test
+  void shouldReturnTrueWhenOrderExists() {
+    var orderId = new OrderId(TSID.from(123456789L));
+    var order = OrderTestDataBuilder.anOrder()
+        .id(orderId)
+        .status(OrderStatus.PLACED)
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId)
+                .build(),
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId)
+                .build()
+        ))
+        .build();
+    persistenceProvider.add(order);
+
+    var orderExists = persistenceProvider.existsById(orderId);
+
+    assertThat(orderExists).isTrue();
+  }
+
+  @Test
+  void shouldReturnFalseWhenOrderExists() {
+    var orderId = new OrderId(TSID.from(123456789L));
+
+    var orderExists = persistenceProvider.existsById(orderId);
+
+    assertThat(orderExists).isFalse();
+  }
+
+  @Test
+  void shouldReturnQuantityOneWhenOrderExists() {
+    var orderId = new OrderId(TSID.from(123456789L));
+    var order = OrderTestDataBuilder.anOrder()
+        .id(orderId)
+        .status(OrderStatus.PLACED)
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId)
+                .build(),
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId)
+                .build()
+        ))
+        .build();
+    persistenceProvider.add(order);
+
+    var quantity = persistenceProvider.count();
+
+    assertThat(quantity).isEqualTo(1);
+  }
+
+  @Test
+  void shouldReturnQuantityZeroWhenOrderExists() {
+    var quantity = persistenceProvider.count();
+
+    assertThat(quantity).isEqualTo(0);
+  }
+
 }
