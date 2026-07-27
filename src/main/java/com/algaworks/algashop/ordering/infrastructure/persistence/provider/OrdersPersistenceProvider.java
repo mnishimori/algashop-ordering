@@ -15,10 +15,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrdersPersistenceProvider implements Orders {
 
   private final OrderPersistenceEntityRepository repository;
@@ -37,6 +39,7 @@ public class OrdersPersistenceProvider implements Orders {
   }
 
   @Override
+  @Transactional(readOnly = false)
   public void add(Order aggregateRoot) {
     var orderId = aggregateRoot.id();
     var persistenceEntity = repository.findById(orderId.value().toLong());

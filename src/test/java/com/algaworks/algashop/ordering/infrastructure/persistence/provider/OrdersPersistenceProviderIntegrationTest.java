@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.OrderItemTestDataBuilder;
@@ -17,6 +18,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @IntegrationTest
 @Import({OrdersPersistenceProvider.class, OrderPersistenceEntityDisassembler.class,
@@ -142,4 +145,26 @@ class OrdersPersistenceProviderIntegrationTest {
     assertThat(quantity).isEqualTo(0);
   }
 
+  @Test
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  void shouldAddOrderAndNotThrowLazyInitializationException() {
+    var orderId = new OrderId(TSID.from(123456789L));
+    var order = OrderTestDataBuilder.anOrder()
+        .id(orderId)
+        .status(OrderStatus.PLACED)
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId)
+                .build(),
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId)
+                .build()
+        ))
+        .build();
+    persistenceProvider.add(order);
+
+    assertThatNoException().isThrownBy(() -> persistenceProvider.findById(orderId));
+  }
 }
