@@ -30,6 +30,7 @@ public class Customer implements AggregateRoot<CustomerId>{
   private OffsetDateTime archivedAt;
   private LoyaltyPoints loyaltyPoints;
   private Address address;
+  private Long version;
 
   @Builder(builderMethodName = "brandnew", builderClassName = "BrandNewCustomerBuilder")
   private static Customer createBrandnew(FullName fullName, LocalDate birthDate, String email, String phone, String document,
@@ -170,6 +171,10 @@ public class Customer implements AggregateRoot<CustomerId>{
     return address;
   }
 
+  public Long version() {
+    return version;
+  }
+
   private void setId(CustomerId customerId) {
     this.id = customerId;
   }
@@ -234,6 +239,10 @@ public class Customer implements AggregateRoot<CustomerId>{
   private void setAddress(Address address) {
     Objects.requireNonNull(address);
     this.address = address;
+  }
+
+  private void setVersion(Long version) {
+    this.version = version;
   }
 
   @Override
