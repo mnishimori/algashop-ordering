@@ -120,4 +120,70 @@ class CustomerPersistenceProviderTest {
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Disassembler failed");
   }
+
+  @Test
+  @DisplayName("Should return true when customer exists by id")
+  void shouldReturnTrueWhenCustomerExistsById() {
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    when(customerPersistenceEntityRepository.existsById(customerId.value())).thenReturn(true);
+
+    boolean result = provider.existsById(customerId);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should return false when customer does not exist by id")
+  void shouldReturnFalseWhenCustomerDoesNotExistById() {
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    when(customerPersistenceEntityRepository.existsById(customerId.value())).thenReturn(false);
+
+    boolean result = provider.existsById(customerId);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when repository throws exception on existsById")
+  void shouldPropagateExceptionWhenRepositoryThrowsExceptionOnExistsById() {
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    RuntimeException exception = new RuntimeException("Database connection failed");
+    when(customerPersistenceEntityRepository.existsById(customerId.value())).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.existsById(customerId))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Database connection failed");
+  }
+
+  @Test
+  @DisplayName("Should return customer count from repository")
+  void shouldReturnCustomerCountFromRepository() {
+    long expectedCount = 42L;
+    when(customerPersistenceEntityRepository.count()).thenReturn(expectedCount);
+
+    int result = provider.count();
+
+    assertThat(result).isEqualTo((int) expectedCount);
+  }
+
+  @Test
+  @DisplayName("Should return zero when repository returns zero count")
+  void shouldReturnZeroWhenRepositoryReturnsZeroCount() {
+    when(customerPersistenceEntityRepository.count()).thenReturn(0L);
+
+    int result = provider.count();
+
+    assertThat(result).isZero();
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when repository throws exception on count")
+  void shouldPropagateExceptionWhenRepositoryThrowsExceptionOnCount() {
+    RuntimeException exception = new RuntimeException("Database connection failed");
+    when(customerPersistenceEntityRepository.count()).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.count())
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Database connection failed");
+  }
 }

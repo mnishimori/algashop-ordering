@@ -23,7 +23,7 @@ public class CustomerPersistenceProvider implements Customers {
 
   @Override
   public boolean existsById(CustomerId customerId) {
-    return false;
+    return customerPersistenceEntityRepository.existsById(customerId.value());
   }
 
   @Override
@@ -33,6 +33,6 @@ public class CustomerPersistenceProvider implements Customers {
 
   @Override
   public int count() {
-    return 0;
+    return (int) customerPersistenceEntityRepository.count();
   }
 }
