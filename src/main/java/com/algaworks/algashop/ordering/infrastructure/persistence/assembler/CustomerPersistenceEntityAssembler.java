@@ -41,10 +41,15 @@ public class CustomerPersistenceEntityAssembler {
 
   private void setAddressInformation(CustomerPersistenceEntity customerPersistenceEntity, Customer customer) {
     var address = customer.address();
+    var addressEmbeddable = customerPersistenceEntity.getAddressEmbeddable();
+    
     if (address == null) {
+      if (addressEmbeddable == null) {
+        customerPersistenceEntity.setAddressEmbeddable(null);
+      }
       return;
     }
-    var addressEmbeddable = customerPersistenceEntity.getAddressEmbeddable();
+    
     if (addressEmbeddable == null) {
       addressEmbeddable = new AddressEmbeddable();
       customerPersistenceEntity.setAddressEmbeddable(addressEmbeddable);
@@ -55,8 +60,6 @@ public class CustomerPersistenceEntityAssembler {
     addressEmbeddable.setNeighborhood(address.neighborhood());
     addressEmbeddable.setCity(address.city());
     addressEmbeddable.setState(address.state());
-    if (address.zipCode() != null) {
-      addressEmbeddable.setZipCode(address.zipCode().toString());
-    }
+    addressEmbeddable.setZipCode(address.zipCode() != null ? address.zipCode().toString() : null);
   }
 }

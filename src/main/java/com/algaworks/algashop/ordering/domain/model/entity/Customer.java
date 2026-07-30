@@ -180,7 +180,8 @@ public class Customer implements AggregateRoot<CustomerId>{
   }
 
   private void setFullName(FullName fullName) {
-    this.fullName = Objects.requireNonNull(fullName);
+    Objects.requireNonNull(fullName);
+    this.fullName = fullName;
   }
 
   private void setBirthDate(LocalDate birthDate) {

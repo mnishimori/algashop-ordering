@@ -9,6 +9,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
+import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.AddressEmbeddable;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -164,5 +165,95 @@ class CustomerPersistenceEntityAssemblerTest {
     CustomerPersistenceEntity entity = assembler.fromDomain(customer);
 
     assertThat(entity.getBirthDate()).isEqualTo(birthDate);
+  }
+
+  @Test
+  @DisplayName("Should handle null fullName in fromDomain")
+  void shouldHandleNullFullNameInFromDomain() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    
+    CustomerPersistenceEntity entity = assembler.fromDomain(customer);
+    
+    assertThat(entity.getFirstName()).isNotNull();
+    assertThat(entity.getLastName()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should handle null loyaltyPoints in fromDomain")
+  void shouldHandleNullLoyaltyPointsInFromDomain() {
+    Customer customer = CustomerTestDataBuilder.existedCustomer()
+        .customerId(new CustomerId())
+        .loyaltyPoints(null)
+        .build();
+
+    CustomerPersistenceEntity entity = assembler.fromDomain(customer);
+
+    assertThat(entity.getLoyaltyPoints()).isNull();
+  }
+
+
+  @Test
+  @DisplayName("Should handle null zipCode in address in fromDomain")
+  void shouldHandleNullZipCodeInAddressInFromDomain() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+
+    CustomerPersistenceEntity entity = assembler.fromDomain(customer);
+
+    assertThat(entity.getAddressEmbeddable()).isNotNull();
+    assertThat(entity.getAddressEmbeddable().getZipCode()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should handle null fullName in merge")
+  void shouldHandleNullFullNameInMerge() {
+    CustomerPersistenceEntity existingEntity = new CustomerPersistenceEntity();
+    existingEntity.setId(UUID.randomUUID());
+    existingEntity.setFirstName("OldFirstName");
+    existingEntity.setLastName("OldLastName");
+
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+
+    CustomerPersistenceEntity result = assembler.merge(existingEntity, customer);
+
+    assertThat(result).isSameAs(existingEntity);
+    assertThat(result.getFirstName()).isNotNull();
+    assertThat(result.getLastName()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should handle null loyaltyPoints in merge")
+  void shouldHandleNullLoyaltyPointsInMerge() {
+    CustomerPersistenceEntity existingEntity = new CustomerPersistenceEntity();
+    existingEntity.setId(UUID.randomUUID());
+    existingEntity.setLoyaltyPoints(100);
+
+    Customer customer = CustomerTestDataBuilder.existedCustomer()
+        .customerId(new CustomerId())
+        .loyaltyPoints(null)
+        .build();
+
+    CustomerPersistenceEntity result = assembler.merge(existingEntity, customer);
+
+    assertThat(result).isSameAs(existingEntity);
+    assertThat(result.getLoyaltyPoints()).isNull();
+  }
+
+
+  @Test
+  @DisplayName("Should handle null zipCode in address in merge")
+  void shouldHandleNullZipCodeInAddressInMerge() {
+    CustomerPersistenceEntity existingEntity = new CustomerPersistenceEntity();
+    existingEntity.setId(UUID.randomUUID());
+    var existingAddressEmbeddable = new AddressEmbeddable();
+    existingAddressEmbeddable.setZipCode("12345-678");
+    existingEntity.setAddressEmbeddable(existingAddressEmbeddable);
+
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+
+    CustomerPersistenceEntity result = assembler.merge(existingEntity, customer);
+
+    assertThat(result).isSameAs(existingEntity);
+    assertThat(result.getAddressEmbeddable()).isNotNull();
+    assertThat(result.getAddressEmbeddable().getZipCode()).isNotNull();
   }
 }
