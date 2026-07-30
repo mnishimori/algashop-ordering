@@ -7,14 +7,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.Customer;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
+import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.CustomerPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.CustomerPersistenceEntityDisassembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.CustomerPersistenceEntityRepository;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +36,12 @@ class CustomerPersistenceProviderTest {
 
   @Mock
   private CustomerPersistenceEntityDisassembler disassembler;
+
+  @Mock
+  private CustomerPersistenceEntityAssembler assembler;
+
+  @Mock
+  private EntityManager entityManager;
 
   @InjectMocks
   private CustomerPersistenceProvider provider;
@@ -185,5 +194,100 @@ class CustomerPersistenceProviderTest {
     assertThatThrownBy(() -> provider.count())
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Database connection failed");
+  }
+
+  @Test
+  @DisplayName("Should insert new customer when it does not exist in repository")
+  void shouldInsertNewCustomerWhenItDoesNotExistInRepository() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    CustomerPersistenceEntity entity = new CustomerPersistenceEntity();
+    entity.setId(customer.id().value());
+
+    when(customerPersistenceEntityRepository.findById(customer.id().value())).thenReturn(Optional.empty());
+    when(assembler.fromDomain(customer)).thenReturn(entity);
+
+    provider.add(customer);
+
+    verify(customerPersistenceEntityRepository).findById(customer.id().value());
+    verify(assembler).fromDomain(customer);
+    verify(customerPersistenceEntityRepository).saveAndFlush(entity);
+    verify(assembler, never()).merge(any(), any());
+    verify(entityManager, never()).detach(any());
+  }
+
+  @Test
+  @DisplayName("Should update existing customer when it already exists in repository")
+  void shouldUpdateExistingCustomerWhenItAlreadyExistsInRepository() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    CustomerPersistenceEntity existingEntity = new CustomerPersistenceEntity();
+    existingEntity.setId(customer.id().value());
+    CustomerPersistenceEntity mergedEntity = new CustomerPersistenceEntity();
+    mergedEntity.setId(customer.id().value());
+    CustomerPersistenceEntity savedEntity = new CustomerPersistenceEntity();
+    savedEntity.setId(customer.id().value());
+    savedEntity.setVersion(5L);
+
+    when(customerPersistenceEntityRepository.findById(customer.id().value())).thenReturn(Optional.of(existingEntity));
+    when(assembler.merge(existingEntity, customer)).thenReturn(mergedEntity);
+    when(customerPersistenceEntityRepository.saveAndFlush(mergedEntity)).thenReturn(savedEntity);
+
+    provider.add(customer);
+
+    verify(customerPersistenceEntityRepository).findById(customer.id().value());
+    verify(assembler).merge(existingEntity, customer);
+    verify(entityManager).detach(existingEntity);
+    verify(customerPersistenceEntityRepository).saveAndFlush(mergedEntity);
+    verify(assembler, never()).fromDomain(any());
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when repository throws exception on add")
+  void shouldPropagateExceptionWhenRepositoryThrowsExceptionOnAdd() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    RuntimeException exception = new RuntimeException("Database connection failed");
+    when(customerPersistenceEntityRepository.findById(customer.id().value())).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.add(customer))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Database connection failed");
+
+    verify(assembler, never()).fromDomain(any());
+    verify(assembler, never()).merge(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when assembler throws exception on insert")
+  void shouldPropagateExceptionWhenAssemblerThrowsExceptionOnInsert() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    RuntimeException exception = new RuntimeException("Assembler failed");
+    when(customerPersistenceEntityRepository.findById(customer.id().value())).thenReturn(Optional.empty());
+    when(assembler.fromDomain(customer)).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.add(customer))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Assembler failed");
+
+    verify(customerPersistenceEntityRepository, never()).saveAndFlush(any());
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when repository throws exception on saveAndFlush during update")
+  void shouldPropagateExceptionWhenRepositoryThrowsExceptionOnSaveAndFlushDuringUpdate() {
+    Customer customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    CustomerPersistenceEntity existingEntity = new CustomerPersistenceEntity();
+    existingEntity.setId(customer.id().value());
+    CustomerPersistenceEntity mergedEntity = new CustomerPersistenceEntity();
+    mergedEntity.setId(customer.id().value());
+    RuntimeException exception = new RuntimeException("Save failed");
+
+    when(customerPersistenceEntityRepository.findById(customer.id().value())).thenReturn(Optional.of(existingEntity));
+    when(assembler.merge(existingEntity, customer)).thenReturn(mergedEntity);
+    when(customerPersistenceEntityRepository.saveAndFlush(mergedEntity)).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.add(customer))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Save failed");
+
+    verify(entityManager).detach(existingEntity);
   }
 }
