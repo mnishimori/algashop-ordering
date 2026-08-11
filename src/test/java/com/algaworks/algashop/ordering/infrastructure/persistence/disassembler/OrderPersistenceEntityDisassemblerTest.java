@@ -9,6 +9,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -25,6 +26,8 @@ class OrderPersistenceEntityDisassemblerTest {
 
     Long id = 123456789L;
     UUID customerId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(customerId);
     BigDecimal totalAmount = new BigDecimal("100.00");
     Integer totalItems = 5;
     String status = "PLACED";
@@ -36,7 +39,7 @@ class OrderPersistenceEntityDisassemblerTest {
 
     OrderPersistenceEntity persistenceEntity = OrderPersistenceEntity.builder()
         .id(id)
-        .customerId(customerId)
+        .customer(customer)
         .totalAmount(totalAmount)
         .totalItems(totalItems)
         .status(status)
@@ -67,9 +70,11 @@ class OrderPersistenceEntityDisassemblerTest {
   void shouldConvertOrderPersistenceEntityWithAllDateFieldsPopulated() {
     OrderPersistenceEntityDisassembler disassembler = new OrderPersistenceEntityDisassembler();
 
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(UUID.randomUUID());
     OrderPersistenceEntity persistenceEntity = OrderPersistenceEntity.builder()
         .id(987654321L)
-        .customerId(UUID.randomUUID())
+        .customer(customer)
         .totalAmount(new BigDecimal("250.50"))
         .totalItems(10)
         .status("READY")
@@ -97,9 +102,11 @@ class OrderPersistenceEntityDisassemblerTest {
   void shouldConvertOrderPersistenceEntityWithCanceledStatus() {
     OrderPersistenceEntityDisassembler disassembler = new OrderPersistenceEntityDisassembler();
 
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(UUID.randomUUID());
     OrderPersistenceEntity persistenceEntity = OrderPersistenceEntity.builder()
         .id(111222333L)
-        .customerId(UUID.randomUUID())
+        .customer(customer)
         .totalAmount(new BigDecimal("75.00"))
         .totalItems(2)
         .status("CANCELED")
@@ -124,9 +131,11 @@ class OrderPersistenceEntityDisassemblerTest {
   void shouldConvertOrderPersistenceEntityWithDraftStatusAndNullDates() {
     OrderPersistenceEntityDisassembler disassembler = new OrderPersistenceEntityDisassembler();
 
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(UUID.randomUUID());
     OrderPersistenceEntity persistenceEntity = OrderPersistenceEntity.builder()
         .id(444555666L)
-        .customerId(UUID.randomUUID())
+        .customer(customer)
         .totalAmount(BigDecimal.ZERO)
         .totalItems(0)
         .status("DRAFT")

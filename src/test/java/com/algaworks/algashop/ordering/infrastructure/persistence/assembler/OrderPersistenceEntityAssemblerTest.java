@@ -1,6 +1,9 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.ProductTestDataBuilder;
@@ -13,9 +16,11 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.ProductName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntityTestDataBuilder;
 import io.hypersistence.tsid.TSID;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -23,12 +28,31 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class OrderPersistenceEntityAssemblerTest {
 
-  private final OrderPersistenceEntityAssembler assembler = new OrderPersistenceEntityAssembler();
+  @Mock
+  private EntityManager entityManager;
+
+  private OrderPersistenceEntityAssembler assembler;
+
+  @BeforeEach
+  void setUp() {
+    assembler = new OrderPersistenceEntityAssembler(entityManager);
+    lenient().when(entityManager.getReference(eq(CustomerPersistenceEntity.class), any(UUID.class)))
+        .thenAnswer(invocation -> {
+          CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+          customer.setId(invocation.getArgument(1));
+          return customer;
+        });
+  }
 
   @Test
   @DisplayName("Should create OrderPersistenceEntity from Order using fromDomain")
@@ -62,7 +86,7 @@ class OrderPersistenceEntityAssemblerTest {
     OrderPersistenceEntity entity = assembler.fromDomain(order);
 
     assertThat(entity.getId()).isEqualTo(123456789L);
-    assertThat(entity.getCustomerId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    assertThat(entity.getCustomer().getId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
     assertThat(entity.getTotalAmount()).isEqualByComparingTo("100.00");
     assertThat(entity.getTotalItems()).isEqualTo(5);
     assertThat(entity.getStatus()).isEqualTo("PLACED");
@@ -78,7 +102,9 @@ class OrderPersistenceEntityAssemblerTest {
   void shouldMergeOrderDataIntoExistingOrderPersistenceEntity() {
     OrderPersistenceEntity existingEntity = new OrderPersistenceEntity();
     existingEntity.setId(999L);
-    existingEntity.setCustomerId(UUID.fromString("99999999-9999-9999-9999-999999999999"));
+    CustomerPersistenceEntity previousCustomer = new CustomerPersistenceEntity();
+    previousCustomer.setId(UUID.fromString("99999999-9999-9999-9999-999999999999"));
+    existingEntity.setCustomer(previousCustomer);
 
     OrderId orderId = new OrderId(TSID.from(123456789L));
     CustomerId customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
@@ -110,7 +136,7 @@ class OrderPersistenceEntityAssemblerTest {
 
     assertThat(result).isSameAs(existingEntity);
     assertThat(result.getId()).isEqualTo(123456789L);
-    assertThat(result.getCustomerId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    assertThat(result.getCustomer().getId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
     assertThat(result.getTotalAmount()).isEqualByComparingTo("250.50");
     assertThat(result.getTotalItems()).isEqualTo(10);
     assertThat(result.getStatus()).isEqualTo("PAID");
@@ -150,7 +176,7 @@ class OrderPersistenceEntityAssemblerTest {
     OrderPersistenceEntity result = assembler.merge(existingEntity, order);
 
     assertThat(result.getId()).isEqualTo(123456789L);
-    assertThat(result.getCustomerId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    assertThat(result.getCustomer().getId()).isEqualTo(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
     assertThat(result.getTotalAmount()).isEqualByComparingTo("100.00");
     assertThat(result.getTotalItems()).isEqualTo(5);
     assertThat(result.getStatus()).isEqualTo("DRAFT");

@@ -12,10 +12,16 @@ public class OrderPersistenceEntityTestDataBuilder {
   private OrderPersistenceEntityTestDataBuilder() {
   }
 
+  public static CustomerPersistenceEntity existingCustomer() {
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(IdGenerator.generateTimeBasedUUID());
+    return customer;
+  }
+
   public static OrderPersistenceEntityBuilder existingOrder() {
     return OrderPersistenceEntity.builder()
         .id(IdGenerator.generateTSID().toLong())
-        .customerId(IdGenerator.generateTimeBasedUUID())
+        .customer(existingCustomer())
         .totalItems(3)
         .totalAmount(new BigDecimal(1250))
         .status("DRAFT")

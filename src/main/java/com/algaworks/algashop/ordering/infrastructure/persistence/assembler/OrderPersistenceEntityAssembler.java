@@ -6,16 +6,22 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Recipient;
 import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.AddressEmbeddable;
 import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.RecipientEmbeddable;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderItemPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
+import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OrderPersistenceEntityAssembler {
+
+  private final EntityManager entityManager;
 
   public OrderPersistenceEntity fromDomain(Order order) {
     return merge(new OrderPersistenceEntity(), order);
@@ -23,7 +29,8 @@ public class OrderPersistenceEntityAssembler {
 
   public OrderPersistenceEntity merge(OrderPersistenceEntity orderPersistenceEntity, Order order) {
     orderPersistenceEntity.setId(order.id().value().toLong());
-    orderPersistenceEntity.setCustomerId(order.customerId().value());
+    orderPersistenceEntity.setCustomer(
+        entityManager.getReference(CustomerPersistenceEntity.class, order.customerId().value()));
     orderPersistenceEntity.setTotalAmount(order.totalAmount().value());
     orderPersistenceEntity.setTotalItems(order.totalItems().value().intValue());
     orderPersistenceEntity.setStatus(order.status().name());

@@ -36,7 +36,7 @@ public class OrderPersistenceEntityDisassembler {
   public Order toDomainEntity(OrderPersistenceEntity orderPersistenceEntity) {
     return Order.existingOrderBuilder()
         .id(new OrderId(orderPersistenceEntity.getId()))
-        .customerId(new CustomerId(orderPersistenceEntity.getCustomerId()))
+        .customerId(new CustomerId(orderPersistenceEntity.getCustomer().getId()))
         .status(OrderStatus.valueOf(orderPersistenceEntity.getStatus()))
         .totalAmount(new Money(orderPersistenceEntity.getTotalAmount()))
         .totalItems(new Quantity(new BigDecimal(orderPersistenceEntity.getTotalItems())))

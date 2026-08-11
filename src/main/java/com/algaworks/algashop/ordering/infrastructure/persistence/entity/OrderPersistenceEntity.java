@@ -6,10 +6,15 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -39,7 +44,9 @@ public class OrderPersistenceEntity {
 
   @Id
   private Long id;
-  private UUID customerId;
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+  @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+  private CustomerPersistenceEntity customer;
   private BigDecimal totalAmount;
   private Integer totalItems;
   private String status;
@@ -93,13 +100,14 @@ public class OrderPersistenceEntity {
   private Set<OrderItemPersistenceEntity> items = new HashSet<>();
 
   @Builder
-  public OrderPersistenceEntity(Long id, UUID customerId, BigDecimal totalAmount, Integer totalItems, String status,
+  public OrderPersistenceEntity(Long id, CustomerPersistenceEntity customer, BigDecimal totalAmount,
+      Integer totalItems, String status,
       String paymentMethod, OffsetDateTime placedAt, OffsetDateTime paidAt, OffsetDateTime canceledAt,
       OffsetDateTime deliveredAt, OffsetDateTime readyAt, UUID createdByUserId, UUID lastModifiedByUserId,
       OffsetDateTime lastModifiedAt, Long version, BillingEmbeddable billingEmbeddable,
       ShippingEmbeddable shippingEmbeddable, Set<OrderItemPersistenceEntity> items) {
     this.id = id;
-    this.customerId = customerId;
+    this.customer = customer;
     this.totalAmount = totalAmount;
     this.totalItems = totalItems;
     this.status = status;

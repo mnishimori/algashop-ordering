@@ -2,19 +2,16 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.algaworks.algashop.ordering.domain.model.entity.Order;
-import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
+import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import io.hypersistence.tsid.TSID;
@@ -60,9 +57,11 @@ class OrdersPersistenceProviderTest {
   @DisplayName("Should return order when found by id")
   void shouldReturnOrderWhenFoundById() {
     OrderId orderId = new OrderId(TSID.from(123456789L));
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(UUID.randomUUID());
     OrderPersistenceEntity entity = OrderPersistenceEntity.builder()
         .id(123456789L)
-        .customerId(UUID.randomUUID())
+        .customer(customer)
         .totalAmount(BigDecimal.ZERO)
         .totalItems(0)
         .status("DRAFT")
@@ -108,9 +107,11 @@ class OrdersPersistenceProviderTest {
   @DisplayName("Should add order to repository")
   void shouldAddOrderToRepository() {
     Order order = Order.createDraftOrder(new CustomerId(UUID.randomUUID()));
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(order.customerId().value());
     OrderPersistenceEntity entity = OrderPersistenceEntity.builder()
         .id(order.id().value().toLong())
-        .customerId(order.customerId().value())
+        .customer(customer)
         .totalAmount(order.totalAmount().value())
         .totalItems(order.totalItems().value().intValue())
         .status(order.status().name())
