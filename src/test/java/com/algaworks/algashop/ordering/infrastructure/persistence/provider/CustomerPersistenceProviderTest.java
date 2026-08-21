@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.Customer;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
@@ -289,5 +290,89 @@ class CustomerPersistenceProviderTest {
         .hasMessage("Save failed");
 
     verify(entityManager).detach(existingEntity);
+  }
+
+  @Test
+  @DisplayName("Should return Optional.empty when customer not found by email")
+  void shouldReturnEmptyWhenCustomerNotFoundByEmail() {
+    String email = "nonexistent@example.com";
+    when(customerPersistenceEntityRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+    Optional<Customer> result = provider.ofEmail(new Email(email));
+
+    assertThat(result).isEmpty();
+    verify(disassembler, never()).toDomainEntity(any());
+  }
+
+  @Test
+  @DisplayName("Should return customer when found by email")
+  void shouldReturnCustomerWhenFoundByEmail() {
+    String email = "john.doe@example.com";
+    CustomerPersistenceEntity entity = new CustomerPersistenceEntity();
+    entity.setId(UUID.randomUUID());
+    entity.setFirstName("John");
+    entity.setLastName("Doe");
+    entity.setEmail(email);
+    entity.setPhone("11999999999");
+    entity.setDocument("12345678900");
+    entity.setBirthDate(LocalDate.of(1990, 1, 1));
+    entity.setPromotionNotificationsAllowed(true);
+    entity.setArchived(false);
+
+    Customer customer = Customer.brandnew()
+        .fullName(new FullName("John", "Doe"))
+        .birthDate(LocalDate.of(1990, 1, 1))
+        .email(email)
+        .phone("11999999999")
+        .document("12345678900")
+        .promotionNotificationsAllowed(true)
+        .address(Address.builder()
+            .street("Street")
+            .number("123")
+            .complement("Apt")
+            .neighborhood("Neighborhood")
+            .city("City")
+            .state("SP")
+            .zipCode(new ZipCode("12345-678"))
+            .build())
+        .build();
+
+    when(customerPersistenceEntityRepository.findByEmail(email)).thenReturn(Optional.of(entity));
+    when(disassembler.toDomainEntity(entity)).thenReturn(customer);
+
+    Optional<Customer> result = provider.ofEmail(new Email(email));
+
+    assertThat(result).isPresent();
+    assertThat(result.get()).isEqualTo(customer);
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when repository throws exception on findByEmail")
+  void shouldPropagateExceptionWhenRepositoryThrowsExceptionOnFindByEmail() {
+    String email = "test@example.com";
+    RuntimeException exception = new RuntimeException("Database connection failed");
+    when(customerPersistenceEntityRepository.findByEmail(email)).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.ofEmail(new Email(email)))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Database connection failed");
+
+    verify(disassembler, never()).toDomainEntity(any());
+  }
+
+  @Test
+  @DisplayName("Should propagate exception when disassembler throws exception on ofEmail")
+  void shouldPropagateExceptionWhenDisassemblerThrowsExceptionOnOfEmail() {
+    String email = "test@example.com";
+    CustomerPersistenceEntity entity = new CustomerPersistenceEntity();
+    entity.setId(UUID.randomUUID());
+
+    RuntimeException exception = new RuntimeException("Disassembler failed");
+    when(customerPersistenceEntityRepository.findByEmail(email)).thenReturn(Optional.of(entity));
+    when(disassembler.toDomainEntity(entity)).thenThrow(exception);
+
+    assertThatThrownBy(() -> provider.ofEmail(new Email(email)))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Disassembler failed");
   }
 }
