@@ -2,12 +2,16 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import com.algaworks.algashop.ordering.domain.model.entity.Order;
 import com.algaworks.algashop.ordering.domain.model.repository.Orders;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import jakarta.persistence.EntityManager;
+import java.time.Year;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -24,7 +28,7 @@ public class OrdersPersistenceProvider implements Orders {
   private final OrderPersistenceEntityAssembler assembler;
   private final EntityManager entityManager;
 
-  @EntityGraph(attributePaths = { "items" })
+  @EntityGraph(attributePaths = {"items"})
   @Override
   public Optional<Order> findById(OrderId orderId) {
     return repository.findById(orderId.value().toLong()).map(disassembler::toDomainEntity);
@@ -71,4 +75,11 @@ public class OrdersPersistenceProvider implements Orders {
     return (int) repository.count();
   }
 
+  @Override
+  public List<Order> placedByCustomerInYear(CustomerId customerId, Year year) {
+    var start = year.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+    var end = start.plusYears(1).minusNanos(1);
+    var orders = repository.findByCustomer_IdAndPlacedAtBetween(customerId.value(), start, end);
+    return orders.stream().map(disassembler::toDomainEntity).toList();
+  }
 }
