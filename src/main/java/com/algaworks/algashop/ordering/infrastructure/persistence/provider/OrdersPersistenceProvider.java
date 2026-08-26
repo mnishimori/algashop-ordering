@@ -77,9 +77,7 @@ public class OrdersPersistenceProvider implements Orders {
 
   @Override
   public List<Order> placedByCustomerInYear(CustomerId customerId, Year year) {
-    var start = year.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
-    var end = start.plusYears(1).minusNanos(1);
-    var orders = repository.findByCustomer_IdAndPlacedAtBetween(customerId.value(), start, end);
+    var orders = repository.placedByCustomerInYear(customerId.value(), year.getValue());
     return orders.stream().map(disassembler::toDomainEntity).toList();
   }
 }

@@ -2,6 +2,7 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,8 @@ import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPe
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import io.hypersistence.tsid.TSID;
 import java.math.BigDecimal;
+import java.time.Year;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -122,6 +125,33 @@ class OrdersPersistenceProviderTest {
     provider.add(order);
 
     verify(assembler).fromDomain(order);
+  }
+
+  @Test
+  @DisplayName("Should return orders placed by customer in year")
+  void shouldReturnOrdersPlacedByCustomerInYear() {
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    Year year = Year.of(2024);
+    CustomerPersistenceEntity customer = new CustomerPersistenceEntity();
+    customer.setId(customerId.value());
+    OrderPersistenceEntity entity = OrderPersistenceEntity.builder()
+        .id(123456789L)
+        .customer(customer)
+        .totalAmount(BigDecimal.ZERO)
+        .totalItems(0)
+        .status("PLACED")
+        .build();
+    Order order = Order.createDraftOrder(customerId);
+
+    when(repository.placedByCustomerInYear(customerId.value(), year.getValue()))
+        .thenReturn(List.of(entity));
+    when(disassembler.toDomainEntity(entity)).thenReturn(order);
+
+    var result = provider.placedByCustomerInYear(customerId, year);
+
+    assertThat(result).containsExactly(order);
+    verify(repository).placedByCustomerInYear(eq(customerId.value()), eq(year.getValue()));
+    verify(disassembler).toDomainEntity(entity);
   }
 
   @Test
