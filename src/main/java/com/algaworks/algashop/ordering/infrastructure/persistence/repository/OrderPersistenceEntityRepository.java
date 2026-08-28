@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.repository;
 
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,11 @@ public interface OrderPersistenceEntityRepository extends JpaRepository<OrderPer
 
   @Query("SELECT o FROM OrderPersistenceEntity o WHERE o.customer.id = :customerId AND YEAR(o.placedAt) = :year")
   List<OrderPersistenceEntity> placedByCustomerInYear(UUID customerId, Integer year);
+
+  @Query("SELECT COALESCE(SUM(o.totalItems), 0) FROM OrderPersistenceEntity o WHERE o.customer.id = :customerId AND YEAR(o.placedAt) = :year AND o.canceledAt IS NULL AND o.paidAt IS NOT NULL")
+  Long salesQuantityByCustomerInYear(UUID customerId, Integer year);
+
+  @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM OrderPersistenceEntity o WHERE o.customer.id = :customerId AND o.canceledAt IS NULL AND o.paidAt IS NOT NULL")
+  BigDecimal totalSoldForCustomer(UUID customerId);
 
 }

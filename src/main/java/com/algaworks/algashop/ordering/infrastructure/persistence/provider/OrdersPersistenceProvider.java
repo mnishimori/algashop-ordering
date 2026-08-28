@@ -2,6 +2,7 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.provider;
 
 import com.algaworks.algashop.ordering.domain.model.entity.Order;
 import com.algaworks.algashop.ordering.domain.model.repository.Orders;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
@@ -10,7 +11,6 @@ import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPe
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import jakarta.persistence.EntityManager;
 import java.time.Year;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -79,5 +79,15 @@ public class OrdersPersistenceProvider implements Orders {
   public List<Order> placedByCustomerInYear(CustomerId customerId, Year year) {
     var orders = repository.placedByCustomerInYear(customerId.value(), year.getValue());
     return orders.stream().map(disassembler::toDomainEntity).toList();
+  }
+
+  @Override
+  public long salesQuantityByCustomerInYear(CustomerId customerId, Year year) {
+    return repository.salesQuantityByCustomerInYear(customerId.value(), year.getValue());
+  }
+
+  @Override
+  public Money totalSoldForCustomer(CustomerId customerId) {
+    return new Money(repository.totalSoldForCustomer(customerId.value()));
   }
 }

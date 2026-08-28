@@ -7,10 +7,11 @@ import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.OrderItemTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.entity.OrderStatus;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Money;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
-import java.util.UUID;
 import com.algaworks.algashop.ordering.infrastructure.persistence.assembler.OrderPersistenceEntityAssembler;
 import com.algaworks.algashop.ordering.infrastructure.persistence.config.SpringDataAuditingConfig;
 import com.algaworks.algashop.ordering.infrastructure.persistence.disassembler.OrderPersistenceEntityDisassembler;
@@ -18,10 +19,12 @@ import com.algaworks.algashop.ordering.infrastructure.persistence.entity.Custome
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.CustomerPersistenceEntityRepository;
 import com.algaworks.algashop.ordering.infrastructure.persistence.repository.OrderPersistenceEntityRepository;
 import io.hypersistence.tsid.TSID;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.Year;
 import java.time.ZoneOffset;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -242,6 +245,124 @@ class OrdersPersistenceProviderIntegrationTest {
 
     assertThat(orders).hasSize(2);
     assertThat(orders).extracting("id").containsExactlyInAnyOrder(orderId1, orderId2);
+  }
+
+  @Test
+  void shouldReturnSalesQuantityByCustomerInYear() {
+    var customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    var year = Year.of(2024);
+    var orderId1 = new OrderId(TSID.from(123456789L));
+    var orderId2 = new OrderId(TSID.from(987654321L));
+
+    createCustomer(customerId.value());
+
+    var order1 = OrderTestDataBuilder.anOrder()
+        .id(orderId1)
+        .customerId(customerId)
+        .totalItems(new Quantity(BigDecimal.ONE))
+        .status(OrderStatus.PLACED)
+        .placedAt(OffsetDateTime.of(2024, 6, 15, 10, 0, 0, 0, ZoneOffset.UTC))
+        .paidAt(OffsetDateTime.of(2024, 6, 16, 10, 0, 0, 0, ZoneOffset.UTC))
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId1)
+                .quantity(new Quantity(BigDecimal.ONE))
+                .build()
+        ))
+        .build();
+
+    var order2 = OrderTestDataBuilder.anOrder()
+        .id(orderId2)
+        .customerId(customerId)
+        .totalItems(new Quantity(BigDecimal.ONE))
+        .status(OrderStatus.PLACED)
+        .placedAt(OffsetDateTime.of(2024, 12, 1, 14, 30, 0, 0, ZoneOffset.UTC))
+        .paidAt(OffsetDateTime.of(2024, 12, 2, 14, 30, 0, 0, ZoneOffset.UTC))
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId2)
+                .quantity(new Quantity(BigDecimal.ONE))
+                .build()
+        ))
+        .build();
+
+    persistenceProvider.add(order1);
+    persistenceProvider.add(order2);
+
+    var quantity = persistenceProvider.salesQuantityByCustomerInYear(customerId, year);
+
+    assertThat(quantity).isEqualTo(2L);
+  }
+
+  @Test
+  void shouldReturnZeroSalesQuantityWhenCustomerHasNoOrdersInYear() {
+    var customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    var year = Year.of(2024);
+
+    createCustomer(customerId.value());
+
+    var quantity = persistenceProvider.salesQuantityByCustomerInYear(customerId, year);
+
+    assertThat(quantity).isEqualTo(0L);
+  }
+
+  @Test
+  void shouldReturnTotalSoldForCustomer() {
+    var customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+    var orderId1 = new OrderId(TSID.from(123456789L));
+    var orderId2 = new OrderId(TSID.from(987654321L));
+
+    createCustomer(customerId.value());
+
+    var order1 = OrderTestDataBuilder.anOrder()
+        .id(orderId1)
+        .customerId(customerId)
+        .status(OrderStatus.PLACED)
+        .placedAt(OffsetDateTime.of(2024, 6, 15, 10, 0, 0, 0, ZoneOffset.UTC))
+        .paidAt(OffsetDateTime.of(2024, 6, 16, 10, 0, 0, 0, ZoneOffset.UTC))
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(111111111L)))
+                .orderId(orderId1)
+                .build()
+        ))
+        .build();
+    order1.recalculateTotalAmount();
+
+    var order2 = OrderTestDataBuilder.anOrder()
+        .id(orderId2)
+        .customerId(customerId)
+        .status(OrderStatus.PLACED)
+        .placedAt(OffsetDateTime.of(2024, 12, 1, 14, 30, 0, 0, ZoneOffset.UTC))
+        .paidAt(OffsetDateTime.of(2024, 12, 2, 14, 30, 0, 0, ZoneOffset.UTC))
+        .items(Set.of(
+            OrderItemTestDataBuilder.anOrderItem()
+                .id(new OrderItemId(TSID.from(222222222L)))
+                .orderId(orderId2)
+                .build()
+        ))
+        .build();
+    order2.recalculateTotalAmount();
+
+    persistenceProvider.add(order1);
+    persistenceProvider.add(order2);
+
+    var totalSold = persistenceProvider.totalSoldForCustomer(customerId);
+
+    assertThat(totalSold).isEqualTo(order1.totalAmount().add(order2.totalAmount()));
+  }
+
+  @Test
+  void shouldReturnZeroTotalSoldWhenCustomerHasNoOrders() {
+    var customerId = new CustomerId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+
+    createCustomer(customerId.value());
+
+    var totalSold = persistenceProvider.totalSoldForCustomer(customerId);
+
+    assertThat(totalSold).isEqualTo(Money.ZERO);
   }
 
   @Test
