@@ -142,4 +142,28 @@ class CustomerPersistenceProviderIntegrationTest {
     assertThat(foundCustomer).isPresent();
     assertThat(foundCustomer.get().id()).isEqualTo(customer1.id());
   }
+
+  @Test
+  void shouldReturnTrueWhenEmailIsUnique() {
+    var customer = CustomerTestDataBuilder.brandNewCustomer().build();
+    persistenceProvider.add(customer);
+
+    var result = persistenceProvider.isEmailUnique(new Email("unique@example.com"), customer.id());
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void shouldReturnFalseWhenEmailIsAlreadyInUseByAnotherCustomer() {
+    var customer1 = CustomerTestDataBuilder.brandNewCustomer().build();
+    var customer2 = CustomerTestDataBuilder.brandNewCustomer()
+        .email("another@example.com")
+        .build();
+    persistenceProvider.add(customer1);
+    persistenceProvider.add(customer2);
+
+    var result = persistenceProvider.isEmailUnique(new Email(customer2.email()), customer1.id());
+
+    assertThat(result).isFalse();
+  }
 }

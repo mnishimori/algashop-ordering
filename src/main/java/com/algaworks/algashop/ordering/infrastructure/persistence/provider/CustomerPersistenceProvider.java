@@ -74,4 +74,9 @@ public class CustomerPersistenceProvider implements Customers {
   public Optional<Customer> ofEmail(Email email) {
     return customerPersistenceEntityRepository.findByEmail(email.value()).map(disassembler::toDomainEntity);
   }
+
+  @Override
+  public boolean isEmailUnique(Email email, CustomerId customerId) {
+    return !customerPersistenceEntityRepository.existsByEmailAndIdNot(email.value(), customerId.value());
+  }
 }

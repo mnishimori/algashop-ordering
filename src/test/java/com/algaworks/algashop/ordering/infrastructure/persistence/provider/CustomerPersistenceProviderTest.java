@@ -375,4 +375,28 @@ class CustomerPersistenceProviderTest {
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Disassembler failed");
   }
+
+  @Test
+  @DisplayName("Should return true when email is unique")
+  void shouldReturnTrueWhenEmailIsUnique() {
+    Email email = new Email("unique@example.com");
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    when(customerPersistenceEntityRepository.existsByEmailAndIdNot(email.value(), customerId.value())).thenReturn(false);
+
+    boolean result = provider.isEmailUnique(email, customerId);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should return false when email is not unique")
+  void shouldReturnFalseWhenEmailIsNotUnique() {
+    Email email = new Email("duplicate@example.com");
+    CustomerId customerId = new CustomerId(UUID.randomUUID());
+    when(customerPersistenceEntityRepository.existsByEmailAndIdNot(email.value(), customerId.value())).thenReturn(true);
+
+    boolean result = provider.isEmailUnique(email, customerId);
+
+    assertThat(result).isFalse();
+  }
 }
