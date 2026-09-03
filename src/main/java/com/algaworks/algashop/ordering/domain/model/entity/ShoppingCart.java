@@ -218,6 +218,6 @@ public class ShoppingCart implements AggregateRoot<ShoppingCartId>{
 
   @Override
   public ShoppingCartId id() {
-    return null;
+    return shoppingCartId;
   }
 }

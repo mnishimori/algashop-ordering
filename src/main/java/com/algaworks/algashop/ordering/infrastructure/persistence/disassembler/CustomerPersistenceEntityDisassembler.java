@@ -7,6 +7,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,9 +25,17 @@ public class CustomerPersistenceEntityDisassembler {
         .archived(customerPersistenceEntity.getArchived())
         .archivedAt(customerPersistenceEntity.getArchivedAt())
         .registeredAt(customerPersistenceEntity.getRegisteredAt())
-        .loyaltyPoints(new LoyaltyPoints(customerPersistenceEntity.getLoyaltyPoints()))
+        .loyaltyPoints(getLoyaltyPoints(customerPersistenceEntity))
         .address(getAddress(customerPersistenceEntity))
         .build();
+  }
+
+  @Nullable
+  private LoyaltyPoints getLoyaltyPoints(CustomerPersistenceEntity customerPersistenceEntity) {
+    if (customerPersistenceEntity.getLoyaltyPoints() == null) {
+      return null;
+    }
+    return new LoyaltyPoints(customerPersistenceEntity.getLoyaltyPoints());
   }
 
   private Address getAddress(CustomerPersistenceEntity customerPersistenceEntity) {
