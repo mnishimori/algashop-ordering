@@ -148,6 +148,10 @@ public class Order implements AggregateRoot<OrderId> {
     return OrderStatus.PAID.equals(this.status);
   }
 
+  public boolean isReady() {
+    return OrderStatus.READY.equals(this.status);
+  }
+
   public void removeItem(OrderItemId orderItemId) {
     Objects.requireNonNull(orderItemId);
     this.verifyIfOrderChangeable();

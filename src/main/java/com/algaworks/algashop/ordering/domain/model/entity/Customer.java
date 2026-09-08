@@ -68,6 +68,9 @@ public class Customer implements AggregateRoot<CustomerId>{
 
   public void addLoyaltyPoints(Integer points) {
     this.customerCanBeModified();
+    if (points.equals(LoyaltyPoints.ZERO)) {
+      return;
+    }
     this.setLoyaltyPoints(this.loyaltyPoints().add(points));
   }
 
