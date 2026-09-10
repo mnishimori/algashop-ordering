@@ -14,12 +14,18 @@ java {
 	}
 }
 
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	mockitoAgent
+}
+
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.uuid:java-uuid-generator:5.1.0'
 	implementation 'commons-validator:commons-validator:1.10.1'
 	implementation 'io.hypersistence:hypersistence-tsid:2.1.4'
@@ -35,6 +41,7 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core:3.27.7'
 	testImplementation 'org.mockito:mockito-core:5.15.2'
 	testImplementation 'org.mockito:mockito-junit-jupiter:5.15.2'
+	mockitoAgent('org.mockito:mockito-core:5.15.2') {transitive = false}
 }
 
 tasks.named('test', Test) {
@@ -43,6 +50,7 @@ tasks.named('test', Test) {
 	useJUnitPlatform({
 		excludeTags 'integrationTest'
 	})
+	jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
 }
 
 tasks.register('integrationTest', Test) {
@@ -54,4 +62,5 @@ tasks.register('integrationTest', Test) {
 	useJUnitPlatform {
 		includeTags 'integrationTest'
 	}
+	jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
 }
