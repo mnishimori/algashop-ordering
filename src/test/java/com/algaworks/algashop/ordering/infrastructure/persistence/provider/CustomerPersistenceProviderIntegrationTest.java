@@ -40,7 +40,7 @@ class CustomerPersistenceProviderIntegrationTest {
     assertThat(customerPersistenceEntity).isNotNull();
     assertThat(customerPersistenceEntity.getFirstName()).isEqualTo(customer.fullName().firstName());
     assertThat(customerPersistenceEntity.getLastName()).isEqualTo(customer.fullName().lastName());
-    assertThat(customerPersistenceEntity.getEmail()).isEqualTo(customer.email());
+    assertThat(customerPersistenceEntity.getEmail()).isEqualTo(customer.email().value());
     assertThat(customerPersistenceEntity.getCreatedByUserId()).isNotNull();
     assertThat(customerPersistenceEntity.getLastModifiedAt()).isNotNull();
     assertThat(customerPersistenceEntity.getLastModifiedByUserId()).isNotNull();
@@ -113,7 +113,7 @@ class CustomerPersistenceProviderIntegrationTest {
     var customer = CustomerTestDataBuilder.brandNewCustomer().build();
     persistenceProvider.add(customer);
 
-    var foundCustomer = persistenceProvider.ofEmail(new Email(customer.email()));
+    var foundCustomer = persistenceProvider.ofEmail(customer.email());
 
     assertThat(foundCustomer).isPresent();
     assertThat(foundCustomer.get().id()).isEqualTo(customer.id());
@@ -137,7 +137,7 @@ class CustomerPersistenceProviderIntegrationTest {
     persistenceProvider.add(customer1);
     persistenceProvider.add(customer2);
 
-    var foundCustomer = persistenceProvider.ofEmail(new Email(customer1.email()));
+    var foundCustomer = persistenceProvider.ofEmail(customer1.email());
 
     assertThat(foundCustomer).isPresent();
     assertThat(foundCustomer.get().id()).isEqualTo(customer1.id());
@@ -162,7 +162,7 @@ class CustomerPersistenceProviderIntegrationTest {
     persistenceProvider.add(customer1);
     persistenceProvider.add(customer2);
 
-    var result = persistenceProvider.isEmailUnique(new Email(customer2.email()), customer1.id());
+    var result = persistenceProvider.isEmailUnique(customer2.email(), customer1.id());
 
     assertThat(result).isFalse();
   }

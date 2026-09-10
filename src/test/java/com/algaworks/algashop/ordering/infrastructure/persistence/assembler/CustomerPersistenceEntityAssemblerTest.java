@@ -31,7 +31,7 @@ class CustomerPersistenceEntityAssemblerTest {
     assertThat(entity.getFirstName()).isEqualTo(customer.fullName().firstName());
     assertThat(entity.getLastName()).isEqualTo(customer.fullName().lastName());
     assertThat(entity.getBirthDate()).isEqualTo(customer.birthDate());
-    assertThat(entity.getEmail()).isEqualTo(customer.email());
+    assertThat(entity.getEmail()).isEqualTo(customer.email().value());
     assertThat(entity.getPhone()).isEqualTo(customer.phone());
     assertThat(entity.getDocument()).isEqualTo(customer.document());
     assertThat(entity.getPromotionNotificationsAllowed()).isEqualTo(customer.promotionNotificationsAllowed());
@@ -61,7 +61,7 @@ class CustomerPersistenceEntityAssemblerTest {
     assertThat(result.getId()).isEqualTo(customer.id().value());
     assertThat(result.getFirstName()).isEqualTo(customer.fullName().firstName());
     assertThat(result.getLastName()).isEqualTo(customer.fullName().lastName());
-    assertThat(result.getEmail()).isEqualTo(customer.email());
+    assertThat(result.getEmail()).isEqualTo(customer.email().value());
     assertThat(result.getLoyaltyPoints()).isEqualTo(customer.loyaltyPoints().value());
   }
 

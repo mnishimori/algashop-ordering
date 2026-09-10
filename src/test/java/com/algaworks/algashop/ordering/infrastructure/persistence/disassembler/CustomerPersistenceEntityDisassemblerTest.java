@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.algaworks.algashop.ordering.domain.model.entity.Customer;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
@@ -55,7 +56,7 @@ class CustomerPersistenceEntityDisassemblerTest {
     assertThat(result.id()).isEqualTo(new CustomerId(customerId));
     assertThat(result.fullName()).isEqualTo(new FullName("John", "Doe"));
     assertThat(result.birthDate()).isEqualTo(LocalDate.of(1990, 1, 1));
-    assertThat(result.email()).isEqualTo("john.doe@example.com");
+    assertThat(result.email()).isEqualTo(new Email("john.doe@example.com"));
     assertThat(result.phone()).isEqualTo("11999999999");
     assertThat(result.document()).isEqualTo("12345678900");
     assertThat(result.promotionNotificationsAllowed()).isTrue();
@@ -110,7 +111,7 @@ class CustomerPersistenceEntityDisassemblerTest {
     assertThat(result.id()).isEqualTo(new CustomerId(customerId));
     assertThat(result.fullName()).isEqualTo(new FullName("Jane", "Smith"));
     assertThat(result.birthDate()).isEqualTo(LocalDate.of(1985, 5, 15));
-    assertThat(result.email()).isEqualTo("jane.smith@example.com");
+    assertThat(result.email()).isEqualTo(new Email("jane.smith@example.com"));
     assertThat(result.phone()).isEqualTo("21888888888");
     assertThat(result.document()).isEqualTo("98765432100");
     assertThat(result.promotionNotificationsAllowed()).isFalse();
@@ -165,7 +166,7 @@ class CustomerPersistenceEntityDisassemblerTest {
     assertThat(result.id()).isEqualTo(new CustomerId(customerId));
     assertThat(result.fullName()).isEqualTo(new FullName("Bob", "Johnson"));
     assertThat(result.birthDate()).isEqualTo(LocalDate.of(2000, 12, 25));
-    assertThat(result.email()).isEqualTo("bob.johnson@example.com");
+    assertThat(result.email()).isEqualTo(new Email("bob.johnson@example.com"));
     assertThat(result.phone()).isEqualTo("31777777777");
     assertThat(result.document()).isEqualTo("11122233344");
     assertThat(result.promotionNotificationsAllowed()).isTrue();
@@ -220,7 +221,7 @@ class CustomerPersistenceEntityDisassemblerTest {
     assertThat(result.id()).isEqualTo(new CustomerId(customerId));
     assertThat(result.fullName()).isEqualTo(new FullName("Alice", "Williams"));
     assertThat(result.birthDate()).isEqualTo(LocalDate.of(1995, 3, 10));
-    assertThat(result.email()).isEqualTo("alice.williams@example.com");
+    assertThat(result.email()).isEqualTo(new Email("alice.williams@example.com"));
     assertThat(result.phone()).isEqualTo("41666666666");
     assertThat(result.document()).isEqualTo("55566677788");
     assertThat(result.promotionNotificationsAllowed()).isTrue();
@@ -275,7 +276,7 @@ class CustomerPersistenceEntityDisassemblerTest {
     assertThat(result.id()).isEqualTo(new CustomerId(customerId));
     assertThat(result.fullName()).isEqualTo(new FullName("Charlie", "Brown"));
     assertThat(result.birthDate()).isEqualTo(LocalDate.of(1988, 7, 20));
-    assertThat(result.email()).isEqualTo("charlie.brown@example.com");
+    assertThat(result.email()).isEqualTo(new Email("charlie.brown@example.com"));
     assertThat(result.phone()).isEqualTo("51555555555");
     assertThat(result.document()).isEqualTo("99988877766");
     assertThat(result.promotionNotificationsAllowed()).isFalse();

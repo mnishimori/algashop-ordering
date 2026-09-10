@@ -7,6 +7,7 @@ import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessage
 import com.algaworks.algashop.ordering.domain.model.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.model.validator.EmailFormatValidator;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
@@ -21,7 +22,7 @@ public class Customer implements AggregateRoot<CustomerId>{
   private CustomerId id;
   private FullName fullName;
   private LocalDate birthDate;
-  private String email;
+  private Email email;
   private String phone;
   private String document;
   private Boolean promotionNotificationsAllowed;
@@ -111,9 +112,9 @@ public class Customer implements AggregateRoot<CustomerId>{
     this.setFullName(fullName);
   }
 
-  public void changeEmail(String email) {
+  public void changeEmail(Email email) {
     customerCanBeModified();
-    this.setEmail(email);
+    this.setEmail(email.value());
   }
 
   public void changePhone(String phone) {
@@ -138,7 +139,7 @@ public class Customer implements AggregateRoot<CustomerId>{
     return birthDate;
   }
 
-  public String email() {
+  public Email email() {
     return email;
   }
 
@@ -201,7 +202,7 @@ public class Customer implements AggregateRoot<CustomerId>{
   private void setEmail(String email) {
     Objects.requireNonNull(email);
     EmailFormatValidator.validate(email);
-    this.email = email;
+    this.email = new Email(email);
   }
 
   private void setDocument(String document) {

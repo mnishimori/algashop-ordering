@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.algaworks.algashop.ordering.domain.model.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.model.entity.Customer;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
+import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
@@ -28,7 +29,7 @@ class CustomerTest {
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
-    assertThat(customer.email()).isEqualTo(CustomerTestDataBuilder.EMAIL);
+    assertThat(customer.email()).isEqualTo(new Email(CustomerTestDataBuilder.EMAIL));
     assertThat(customer.phone()).isEqualTo(CustomerTestDataBuilder.PHONE);
     assertThat(customer.document()).isEqualTo(CustomerTestDataBuilder.DOCUMENT);
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
@@ -44,7 +45,7 @@ class CustomerTest {
 
     assertThat(customer.fullName()).isEqualTo(new FullName(FIRST_NAME, LAST_NAME));
     assertThat(customer.birthDate()).isEqualTo(BIRTH_DATE);
-    assertThat(customer.email()).isEqualTo(CustomerTestDataBuilder.EMAIL);
+    assertThat(customer.email()).isEqualTo(new Email(CustomerTestDataBuilder.EMAIL));
     assertThat(customer.phone()).isEqualTo(CustomerTestDataBuilder.PHONE);
     assertThat(customer.document()).isEqualTo(CustomerTestDataBuilder.DOCUMENT);
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
@@ -230,7 +231,7 @@ class CustomerTest {
     assertThat(customer.archived()).isTrue();
     assertThat(customer.archivedAt()).isNotNull();
     assertThat(customer.fullName()).isEqualTo(new FullName("Anounymous", "Anounymous"));
-    assertThat(customer.email()).endsWith("@anonymous.com");
+    assertThat(customer.email().value()).endsWith("@anonymous.com");
     assertThat(customer.promotionNotificationsAllowed()).isFalse();
     assertThat(customer.phone()).isEqualTo("0000-0000");
     assertThat(customer.document()).isEqualTo("00000000000");
@@ -293,9 +294,9 @@ class CustomerTest {
   void shouldChangeEmail() {
     var customer = CustomerTestDataBuilder.existedCustomer().email("joao.silva@example.com").build();
 
-    customer.changeEmail("maria.silva@example.com");
+    customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("maria.silva@example.com"));
 
-    assertThat(customer.email()).isEqualTo("maria.silva@example.com");
+    assertThat(customer.email().value()).isEqualTo("maria.silva@example.com");
   }
 
   @Test
@@ -303,7 +304,7 @@ class CustomerTest {
   void shouldThrowExceptionWhenChangingEmailToInvalid() {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThatThrownBy(() -> customer.changeEmail("invalid"))
+    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("invalid")))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email is invalid");
   }
@@ -313,7 +314,7 @@ class CustomerTest {
   void shouldThrowExceptionWhenChangingEmailToBlank() {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThatThrownBy(() -> customer.changeEmail("   "))
+    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("   ")))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email cannot be blank");
   }
@@ -382,7 +383,7 @@ class CustomerTest {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
-    assertThatThrownBy(() -> customer.changeEmail("maria.silva@example.com"))
+    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("maria.silva@example.com")))
         .isInstanceOf(CustomerArchivedException.class);
   }
 

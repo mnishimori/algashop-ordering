@@ -16,7 +16,7 @@ public class CustomerPersistenceEntityAssembler {
     customerPersistenceEntity.setId(customer.id().value());
     setFullName(customerPersistenceEntity, customer);
     customerPersistenceEntity.setBirthDate(customer.birthDate());
-    customerPersistenceEntity.setEmail(customer.email());
+    customerPersistenceEntity.setEmail(customer.email().value());
     customerPersistenceEntity.setPhone(customer.phone());
     customerPersistenceEntity.setDocument(customer.document());
     customerPersistenceEntity.setPromotionNotificationsAllowed(customer.promotionNotificationsAllowed());
