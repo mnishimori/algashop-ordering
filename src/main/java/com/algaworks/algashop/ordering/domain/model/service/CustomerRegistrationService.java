@@ -3,6 +3,7 @@ package com.algaworks.algashop.ordering.domain.model.service;
 import com.algaworks.algashop.ordering.domain.model.entity.Customer;
 import com.algaworks.algashop.ordering.domain.model.exception.CustomerEmailIsInUseException;
 import com.algaworks.algashop.ordering.domain.model.repository.Customers;
+import com.algaworks.algashop.ordering.domain.model.utility.DomainService;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
@@ -10,6 +11,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 
+@DomainService
 @RequiredArgsConstructor
 public class CustomerRegistrationService {
 
