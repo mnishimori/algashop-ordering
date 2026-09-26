@@ -6,6 +6,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
 import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
 import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import java.time.LocalDate;
 
 public class CustomerTestDataBuilder {
@@ -33,7 +34,7 @@ public class CustomerTestDataBuilder {
 
   public static Customer.ExistedCustomerBuilder existedCustomer() {
     var address = createCustomerAddress();
-    return Customer.existed().fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
+    return Customer.existed().customerId(new CustomerId()).fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
         .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
         .loyaltyPoints(LoyaltyPoints.ZERO).archived(false);
   }

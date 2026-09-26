@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 
-public class ShoppingCart implements AggregateRoot<ShoppingCartId>{
+public class ShoppingCart implements AggregateRoot<ShoppingCartId> {
 
   private ShoppingCartId shoppingCartId;
   private CustomerId customerId;
@@ -25,12 +25,7 @@ public class ShoppingCart implements AggregateRoot<ShoppingCartId>{
   private Set<ShoppingCartItem> items;
 
   public static ShoppingCart newShoppingCart(CustomerId customerId) {
-    return new ShoppingCart(
-        new ShoppingCartId(),
-        customerId,
-        Money.ZERO,
-        Quantity.ZERO,
-        OffsetDateTime.now(),
+    return new ShoppingCart(new ShoppingCartId(), customerId, Money.ZERO, Quantity.ZERO, OffsetDateTime.now(),
         new HashSet<>()
     );
   }
