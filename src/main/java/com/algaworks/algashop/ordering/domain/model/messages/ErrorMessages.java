@@ -1,6 +1,7 @@
 package com.algaworks.algashop.ordering.domain.model.messages;
 
 public class ErrorMessages {
+
   public static final String BIRTHDATE_MUST_IN_PAST = "BirthDate must be a past date";
   public static final String DOCUMENT_CANNOT_BE_BLANK = "Document cannot be blank";
   public static final String PHONE_CANNOT_BE_BLANK = "Phone cannot be blank";
@@ -29,4 +30,6 @@ public class ErrorMessages {
   public static final String CANNOT_ADD_LOYALTY_POINTS_ORDER_IS_NOT_READY = "Cannot add loyalty points because order is not ready";
   public static final String ORDER_NOT_BELONGS_TO_CUSTOMER = "Order does not belong to customer";
   public static final String SHOPPING_CART_CANT_PROCEED_TO_CHECKOUT = "Shopping cart cant proceed to checkout";
+  public static final String CUSTOMER_NOT_FOUND = "Customer not found with ID %s";
+  public static final String CUSTOMER_ALREADY_HAVE_SHOPPING_CART = "Customer already have shopping cart. Customer ID: %s";
 }
