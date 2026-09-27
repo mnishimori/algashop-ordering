@@ -15,6 +15,7 @@ import com.algaworks.algashop.ordering.domain.model.valueobject.Shipping;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.domain.model.valueobject.id.OrderItemId;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -69,6 +70,9 @@ public class Order implements AggregateRoot<OrderId> {
     Objects.requireNonNull(product);
     Objects.requireNonNull(quantity);
     this.verifyIfOrderChangeable();
+    if (quantity.value().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("Quantity must be greater than zero");
+    }
     product.changeOutStock();
     var orderItem = OrderItem.draftOrderItemBuilder()
         .orderId(this.id())

@@ -17,4 +17,8 @@ public class ProductTestDataBuilder {
   public static Product.ProductBuilder createProduct(ProductName productName, Money price, Boolean inStock) {
     return Product.builder().id(new ProductId()).name(productName).price(price).inStock(inStock);
   }
+
+  public static Product.ProductBuilder aProductUnavailable() {
+    return Product.builder().id(new ProductId()).name(new ProductName("Notebook")).price(new Money("3000")).inStock(false);
+  }
 }

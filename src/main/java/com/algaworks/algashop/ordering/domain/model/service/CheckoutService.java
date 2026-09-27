@@ -16,27 +16,36 @@ import java.util.Objects;
 public class CheckoutService {
 
   public Order checkout(ShoppingCart shoppingCart, Billing billing, Shipping shipping, PaymentMethod paymentMethod) {
-    Objects.requireNonNull(shoppingCart);
-    Objects.requireNonNull(billing);
-    Objects.requireNonNull(shipping);
-    Objects.requireNonNull(paymentMethod);
-
-    if (shoppingCart.containsUnavailableItems()) {
-      throw new ShoppingCartCantProceedToCheckoutException(SHOPPING_CART_CANT_PROCEED_TO_CHECKOUT);
-    }
+    validateRequiredFields(shoppingCart, billing, shipping, paymentMethod);
+    validateRequiredItems(shoppingCart);
 
     var order = Order.createDraftOrder(shoppingCart.customerId());
     order.changeBilling(billing);
     order.changeShipping(shipping);
     order.changePaymentMethod(paymentMethod);
     shoppingCart.items().forEach(shoppingCartItem -> {
-      var product = new Product(shoppingCartItem.product(), shoppingCartItem.productName(), shoppingCartItem.price(), shoppingCartItem.available());
+      var product = new Product(shoppingCartItem.product(), shoppingCartItem.productName(), shoppingCartItem.price(),
+          shoppingCartItem.available());
       order.addOrderItem(product, shoppingCartItem.quantity());
     });
     order.place();
     shoppingCart.empty();
 
     return order;
+  }
+
+  private void validateRequiredItems(ShoppingCart shoppingCart) {
+    if (shoppingCart.containsUnavailableItems()) {
+      throw new ShoppingCartCantProceedToCheckoutException(SHOPPING_CART_CANT_PROCEED_TO_CHECKOUT);
+    }
+  }
+
+  private void validateRequiredFields(ShoppingCart shoppingCart, Billing billing, Shipping shipping,
+      PaymentMethod paymentMethod) {
+    Objects.requireNonNull(shoppingCart);
+    Objects.requireNonNull(billing);
+    Objects.requireNonNull(shipping);
+    Objects.requireNonNull(paymentMethod);
   }
 
 }
