@@ -3,19 +3,19 @@ package com.algaworks.algashop.ordering.domain.entity;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.BIRTH_DATE;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.FIRST_NAME;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.LAST_NAME;
-import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.BIRTHDATE_MUST_IN_PAST;
-import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.FULL_NAME_CANNOT_BE_BLANK;
-import static com.algaworks.algashop.ordering.domain.model.messages.ErrorMessages.LOYALTY_POINTS_CANNOT_BE_NEGATIVE_OR_ZERO;
+import static com.algaworks.algashop.ordering.domain.model.ErrorMessages.BIRTHDATE_MUST_IN_PAST;
+import static com.algaworks.algashop.ordering.domain.model.ErrorMessages.FULL_NAME_CANNOT_BE_BLANK;
+import static com.algaworks.algashop.ordering.domain.model.ErrorMessages.LOYALTY_POINTS_CANNOT_BE_NEGATIVE_OR_ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.algaworks.algashop.ordering.domain.model.exception.CustomerArchivedException;
-import com.algaworks.algashop.ordering.domain.model.entity.Customer;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Address;
-import com.algaworks.algashop.ordering.domain.model.valueobject.Email;
-import com.algaworks.algashop.ordering.domain.model.valueobject.FullName;
-import com.algaworks.algashop.ordering.domain.model.valueobject.LoyaltyPoints;
-import com.algaworks.algashop.ordering.domain.model.valueobject.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
+import com.algaworks.algashop.ordering.domain.model.customer.Customer;
+import com.algaworks.algashop.ordering.domain.model.commons.Address;
+import com.algaworks.algashop.ordering.domain.model.commons.Email;
+import com.algaworks.algashop.ordering.domain.model.commons.FullName;
+import com.algaworks.algashop.ordering.domain.model.customer.LoyaltyPoints;
+import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -294,7 +294,7 @@ class CustomerTest {
   void shouldChangeEmail() {
     var customer = CustomerTestDataBuilder.existedCustomer().email("joao.silva@example.com").build();
 
-    customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("maria.silva@example.com"));
+    customer.changeEmail(new Email("maria.silva@example.com"));
 
     assertThat(customer.email().value()).isEqualTo("maria.silva@example.com");
   }
@@ -304,7 +304,7 @@ class CustomerTest {
   void shouldThrowExceptionWhenChangingEmailToInvalid() {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("invalid")))
+    assertThatThrownBy(() -> customer.changeEmail(new Email("invalid")))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email is invalid");
   }
@@ -314,7 +314,7 @@ class CustomerTest {
   void shouldThrowExceptionWhenChangingEmailToBlank() {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
 
-    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("   ")))
+    assertThatThrownBy(() -> customer.changeEmail(new Email("   ")))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Email cannot be blank");
   }
@@ -383,7 +383,7 @@ class CustomerTest {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
     customer.archive();
 
-    assertThatThrownBy(() -> customer.changeEmail(new com.algaworks.algashop.ordering.domain.model.valueobject.Email("maria.silva@example.com")))
+    assertThatThrownBy(() -> customer.changeEmail(new Email("maria.silva@example.com")))
         .isInstanceOf(CustomerArchivedException.class);
   }
 
