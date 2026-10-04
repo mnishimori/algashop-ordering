@@ -1,4 +1,4 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.entity;
+package com.algaworks.algashop.ordering.infrastructure.persistence.order;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

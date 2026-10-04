@@ -1,20 +1,14 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.entity;
+package com.algaworks.algashop.ordering.infrastructure.persistence.shoppingcart;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Set;
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,26 +18,28 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "shopping_carts")
+@Table(name = "shopping_cart_items")
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString(of = "id")
-@EntityListeners(AuditingEntityListener.class)
-public class ShoppingCartPersistenceEntity {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class ShoppingCartItemPersistenceEntity {
 
   @Id
+  @EqualsAndHashCode.Include
   private UUID id;
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-  @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-  private CustomerPersistenceEntity customer;
-  @OneToMany(mappedBy = "shoppingCart", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<ShoppingCartItemPersistenceEntity> items;
+  @JoinColumn(name = "shopping_cart_id", nullable = false)
+  @ManyToOne(optional = false)
+  private ShoppingCartPersistenceEntity shoppingCart;
+  private UUID productId;
+  private String productName;
+  private BigDecimal price;
+  private Integer quantity;
   private BigDecimal totalAmount;
-  private Integer totalItems;
+  private Boolean available;
   @CreatedBy
   private UUID createdByUserId;
   @CreatedDate
@@ -53,7 +49,5 @@ public class ShoppingCartPersistenceEntity {
   @LastModifiedBy
   private UUID lastModifiedByUserId;
   @Version
-  private Long version;
-
-
+  private Long Version;
 }

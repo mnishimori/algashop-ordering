@@ -3,8 +3,8 @@ package com.algaworks.algashop.ordering.infrastructure.persistence.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntityTestDataBuilder;
+import com.algaworks.algashop.ordering.infrastructure.persistence.order.OrderPersistenceEntityRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

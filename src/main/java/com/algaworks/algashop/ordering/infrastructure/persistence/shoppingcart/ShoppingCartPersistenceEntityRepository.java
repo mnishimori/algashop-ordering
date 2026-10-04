@@ -1,6 +1,5 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.repository;
+package com.algaworks.algashop.ordering.infrastructure.persistence.shoppingcart;
 
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.ShoppingCartPersistenceEntity;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;

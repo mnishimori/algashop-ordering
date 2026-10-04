@@ -1,4 +1,4 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.disassembler;
+package com.algaworks.algashop.ordering.infrastructure.persistence.order;
 
 import com.algaworks.algashop.ordering.domain.model.order.Order;
 import com.algaworks.algashop.ordering.domain.model.order.OrderItem;
@@ -20,10 +20,6 @@ import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.order.OrderId;
 import com.algaworks.algashop.ordering.domain.model.order.OrderItemId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
-import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.BillingEmbeddable;
-import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.ShippingEmbeddable;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderItemPersistenceEntity;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.HashSet;

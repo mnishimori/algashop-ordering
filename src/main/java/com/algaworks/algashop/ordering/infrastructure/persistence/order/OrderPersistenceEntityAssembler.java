@@ -1,14 +1,12 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.assembler;
+package com.algaworks.algashop.ordering.infrastructure.persistence.order;
 
 import com.algaworks.algashop.ordering.domain.model.order.Order;
 import com.algaworks.algashop.ordering.domain.model.order.OrderItem;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
 import com.algaworks.algashop.ordering.domain.model.order.Recipient;
-import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.AddressEmbeddable;
-import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.RecipientEmbeddable;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.CustomerPersistenceEntity;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderItemPersistenceEntity;
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
+import com.algaworks.algashop.ordering.infrastructure.persistence.commons.AddressEmbeddable;
+import com.algaworks.algashop.ordering.infrastructure.persistence.commons.RecipientEmbeddable;
+import com.algaworks.algashop.ordering.infrastructure.persistence.customer.CustomerPersistenceEntity;
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.Map;

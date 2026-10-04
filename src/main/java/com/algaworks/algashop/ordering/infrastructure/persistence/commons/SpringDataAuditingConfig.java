@@ -1,4 +1,4 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.config;
+package com.algaworks.algashop.ordering.infrastructure.persistence.commons;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;

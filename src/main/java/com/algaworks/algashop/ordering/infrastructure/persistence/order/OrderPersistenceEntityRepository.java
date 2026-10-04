@@ -1,6 +1,5 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.repository;
+package com.algaworks.algashop.ordering.infrastructure.persistence.order;
 
-import com.algaworks.algashop.ordering.infrastructure.persistence.entity.OrderPersistenceEntity;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;

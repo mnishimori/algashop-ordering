@@ -1,6 +1,6 @@
-package com.algaworks.algashop.ordering.infrastructure.persistence.entity;
+package com.algaworks.algashop.ordering.infrastructure.persistence.customer;
 
-import com.algaworks.algashop.ordering.infrastructure.persistence.embeddable.AddressEmbeddable;
+import com.algaworks.algashop.ordering.infrastructure.persistence.commons.AddressEmbeddable;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
