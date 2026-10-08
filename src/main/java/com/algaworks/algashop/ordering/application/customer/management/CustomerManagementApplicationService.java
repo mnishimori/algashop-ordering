@@ -1,8 +1,6 @@
-package com.algaworks.algashop.ordering.application.service;
+package com.algaworks.algashop.ordering.application.customer.management;
 
-import com.algaworks.algashop.ordering.application.model.AddressData;
-import com.algaworks.algashop.ordering.application.model.CustomerInput;
-import com.algaworks.algashop.ordering.application.model.CustomerOutput;
+import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
 import com.algaworks.algashop.ordering.domain.model.commons.Document;
 import com.algaworks.algashop.ordering.domain.model.commons.Email;
@@ -44,7 +42,7 @@ public class CustomerManagementApplicationService {
         .build();
 
     var customer = customerRegistrationService.register(fullName, birthDate.value(), email.value(), phone.value(),
-        document.value(), customerInput.getPromotionNotificatiionsAllowed(), address);
+        document.value(), customerInput.getPromotionNotificationsAllowed(), address);
     return customer.id().value();
   }
 
@@ -74,5 +72,29 @@ public class CustomerManagementApplicationService {
             .zipCode(customer.address().zipCode().value())
             .build())
         .build();
+  }
+
+  @Transactional
+  public void update(UUID id, CustomerUpdateInput customerUpdateInput) {
+    Objects.requireNonNull(id);
+    Objects.requireNonNull(customerUpdateInput);
+    var customer = customers.findById(new CustomerId(id))
+        .orElseThrow(() -> new CustomerNotFoundException(new CustomerId(id)));
+
+    var fullName = new FullName(customerUpdateInput.getFirstName(), customerUpdateInput.getLastName());
+    var addressData = customerUpdateInput.getAddress();
+    var zipCode = addressData.getZipCode();
+    var address = new Address(addressData.getStreet(), addressData.getNumber(), addressData.getComplement(),
+        addressData.getNeighboorhood(), addressData.getCity(), addressData.getState(), new ZipCode(zipCode));
+    customer.changeName(fullName);
+    customer.changePhone(customerUpdateInput.getPhone());
+    customer.changeAddress(address);
+    if (customerUpdateInput.getPromotionNotificationsAllowed()) {
+      customer.enablePromotionNotifications();
+    } else {
+      customer.disablePromotionNotifications();
+    }
+
+    customers.add(customer);
   }
 }

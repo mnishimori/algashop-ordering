@@ -11,12 +11,15 @@ import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuil
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.NUMBER;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.PHONE;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.ZIP_CODE;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
-import com.algaworks.algashop.ordering.application.model.AddressData;
-import com.algaworks.algashop.ordering.application.model.CustomerInput;
+import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
+import com.algaworks.algashop.ordering.application.commons.AddressData;
+import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
+import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
@@ -88,6 +91,38 @@ class CustomerManagementApplicationServiceIntegrationTest {
         .isInstanceOf(CustomerNotFoundException.class);
   }
 
+  @Test
+  void shouldUpdateCustomer() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+    customers.add(customer);
+
+    var customerUpdateInput = createCustomerUpdateInput();
+
+    assertThatCode(() -> customerManagementApplicationService.update(customer.id().value(), customerUpdateInput))
+        .doesNotThrowAnyException();
+
+    var updatedCustomer = customers.findById(customer.id()).orElseThrow();
+    assertThat(updatedCustomer.fullName().firstName()).isEqualTo(customerUpdateInput.getFirstName());
+    assertThat(updatedCustomer.fullName().lastName()).isEqualTo(customerUpdateInput.getLastName());
+    assertThat(updatedCustomer.phone()).isEqualTo(customerUpdateInput.getPhone());
+    assertThat(updatedCustomer.promotionNotificationsAllowed()).isEqualTo(customerUpdateInput.getPromotionNotificationsAllowed());
+    assertThat(updatedCustomer.address().street()).isEqualTo(customerUpdateInput.getAddress().getStreet());
+    assertThat(updatedCustomer.address().number()).isEqualTo(customerUpdateInput.getAddress().getNumber());
+    assertThat(updatedCustomer.address().complement()).isEqualTo(customerUpdateInput.getAddress().getComplement());
+    assertThat(updatedCustomer.address().neighborhood()).isEqualTo(customerUpdateInput.getAddress().getNeighboorhood());
+    assertThat(updatedCustomer.address().city()).isEqualTo(customerUpdateInput.getAddress().getCity());
+    assertThat(updatedCustomer.address().state()).isEqualTo(customerUpdateInput.getAddress().getState());
+    assertThat(updatedCustomer.address().zipCode().value()).isEqualTo(customerUpdateInput.getAddress().getZipCode());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenUpdatingCustomerThatDoesNotExist() {
+    var customerUpdateInput = createCustomerUpdateInput();
+
+    assertThatThrownBy(() -> customerManagementApplicationService.update(UUID.randomUUID(), customerUpdateInput))
+        .isInstanceOf(CustomerNotFoundException.class);
+  }
+
   private static CustomerInput createCustomerInput(boolean promotionNotificationsAllowed, AddressData addressData) {
     return CustomerInput.builder()
         .firstName(FIRST_NAME)
@@ -96,8 +131,26 @@ class CustomerManagementApplicationServiceIntegrationTest {
         .phone(PHONE)
         .document(DOCUMENT)
         .birthDate(BIRTH_DATE)
-        .promotionNotificatiionsAllowed(promotionNotificationsAllowed)
+        .promotionNotificationsAllowed(promotionNotificationsAllowed)
         .address(addressData)
+        .build();
+  }
+
+  private static CustomerUpdateInput createCustomerUpdateInput() {
+    return CustomerUpdateInput.builder()
+        .firstName("Maria")
+        .lastName("Oliveira")
+        .phone("21988887777")
+        .promotionNotificationsAllowed(true)
+        .address(AddressData.builder()
+            .street("Rua das Flores")
+            .number("456")
+            .complement("Apto 101")
+            .neighboorhood("Centro")
+            .city("Rio de Janeiro")
+            .state("RJ")
+            .zipCode("20000-000")
+            .build())
         .build();
   }
 

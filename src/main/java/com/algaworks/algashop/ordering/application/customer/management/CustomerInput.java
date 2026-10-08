@@ -1,5 +1,6 @@
-package com.algaworks.algashop.ordering.application.model;
+package com.algaworks.algashop.ordering.application.customer.management;
 
+import com.algaworks.algashop.ordering.application.commons.AddressData;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +19,7 @@ public class CustomerInput {
   private String phone;
   private String document;
   private LocalDate birthDate;
-  private Boolean promotionNotificatiionsAllowed;
+  private Boolean promotionNotificationsAllowed;
   private AddressData address;
 
 }

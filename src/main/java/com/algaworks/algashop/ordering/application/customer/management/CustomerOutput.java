@@ -1,5 +1,6 @@
-package com.algaworks.algashop.ordering.application.model;
+package com.algaworks.algashop.ordering.application.customer.management;
 
+import com.algaworks.algashop.ordering.application.commons.AddressData;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
