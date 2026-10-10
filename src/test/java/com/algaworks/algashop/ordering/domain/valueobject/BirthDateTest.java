@@ -33,7 +33,7 @@ class BirthDateTest {
   void shouldReturnAge() {
     var birthDate = new BirthDate(LocalDate.of(1976, 10, 9));
 
-    assertThat(birthDate.age()).isEqualTo(49);
+    assertThat(birthDate.age()).isEqualTo(50);
   }
 
   @Test

@@ -6,7 +6,9 @@ import com.algaworks.algashop.ordering.domain.model.product.Product;
 import com.algaworks.algashop.ordering.domain.model.product.ProductName;
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProductCatalogServiceFakeImpl implements ProductCatalogService {
 
   @Override

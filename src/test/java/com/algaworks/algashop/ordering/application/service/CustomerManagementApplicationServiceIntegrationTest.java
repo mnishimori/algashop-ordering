@@ -79,7 +79,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(customerOutput.getAddress().getStreet()).isEqualTo(customer.address().street());
     assertThat(customerOutput.getAddress().getNumber()).isEqualTo(customer.address().number());
     assertThat(customerOutput.getAddress().getComplement()).isEqualTo(customer.address().complement());
-    assertThat(customerOutput.getAddress().getNeighboorhood()).isEqualTo(customer.address().neighborhood());
+    assertThat(customerOutput.getAddress().getNeighbourhood()).isEqualTo(customer.address().neighborhood());
     assertThat(customerOutput.getAddress().getCity()).isEqualTo(customer.address().city());
     assertThat(customerOutput.getAddress().getState()).isEqualTo(customer.address().state());
     assertThat(customerOutput.getAddress().getZipCode()).isEqualTo(customer.address().zipCode().value());
@@ -109,7 +109,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(updatedCustomer.address().street()).isEqualTo(customerUpdateInput.getAddress().getStreet());
     assertThat(updatedCustomer.address().number()).isEqualTo(customerUpdateInput.getAddress().getNumber());
     assertThat(updatedCustomer.address().complement()).isEqualTo(customerUpdateInput.getAddress().getComplement());
-    assertThat(updatedCustomer.address().neighborhood()).isEqualTo(customerUpdateInput.getAddress().getNeighboorhood());
+    assertThat(updatedCustomer.address().neighborhood()).isEqualTo(customerUpdateInput.getAddress().getNeighbourhood());
     assertThat(updatedCustomer.address().city()).isEqualTo(customerUpdateInput.getAddress().getCity());
     assertThat(updatedCustomer.address().state()).isEqualTo(customerUpdateInput.getAddress().getState());
     assertThat(updatedCustomer.address().zipCode().value()).isEqualTo(customerUpdateInput.getAddress().getZipCode());
@@ -146,7 +146,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
             .street("Rua das Flores")
             .number("456")
             .complement("Apto 101")
-            .neighboorhood("Centro")
+            .neighbourhood("Centro")
             .city("Rio de Janeiro")
             .state("RJ")
             .zipCode("20000-000")
@@ -158,7 +158,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     return AddressData.builder()
         .street(BOURBON_STREET)
         .number(NUMBER)
-        .neighboorhood(NORTH_VALLEY)
+        .neighbourhood(NORTH_VALLEY)
         .city(NEW_YORK)
         .state(NEW_YORK)
         .zipCode(ZIP_CODE)

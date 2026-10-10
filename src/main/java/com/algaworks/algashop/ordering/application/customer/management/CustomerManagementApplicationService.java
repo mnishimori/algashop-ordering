@@ -36,7 +36,7 @@ public class CustomerManagementApplicationService {
     var document = new Document(customerInput.getDocument());
     var address = Address.builder().zipCode(new ZipCode(customerInput.getAddress().getZipCode()))
         .state(customerInput.getAddress().getState()).city(customerInput.getAddress().getCity())
-        .neighborhood(customerInput.getAddress().getNeighboorhood())
+        .neighborhood(customerInput.getAddress().getNeighbourhood())
         .street(customerInput.getAddress().getStreet()).number(customerInput.getAddress().getNumber())
         .complement(customerInput.getAddress().getComplement())
         .build();
@@ -66,7 +66,7 @@ public class CustomerManagementApplicationService {
             .street(customer.address().street())
             .number(customer.address().number())
             .complement(customer.address().complement())
-            .neighboorhood(customer.address().neighborhood())
+            .neighbourhood(customer.address().neighborhood())
             .city(customer.address().city())
             .state(customer.address().state())
             .zipCode(customer.address().zipCode().value())
@@ -85,7 +85,7 @@ public class CustomerManagementApplicationService {
     var addressData = customerUpdateInput.getAddress();
     var zipCode = addressData.getZipCode();
     var address = new Address(addressData.getStreet(), addressData.getNumber(), addressData.getComplement(),
-        addressData.getNeighboorhood(), addressData.getCity(), addressData.getState(), new ZipCode(zipCode));
+        addressData.getNeighbourhood(), addressData.getCity(), addressData.getState(), new ZipCode(zipCode));
     customer.changeName(fullName);
     customer.changePhone(customerUpdateInput.getPhone());
     customer.changeAddress(address);
