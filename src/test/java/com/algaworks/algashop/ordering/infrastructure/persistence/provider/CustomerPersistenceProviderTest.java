@@ -237,7 +237,7 @@ class CustomerPersistenceProviderTest {
 
     verify(customerPersistenceEntityRepository).findById(customer.id().value());
     verify(assembler).merge(existingEntity, customer);
-    verify(entityManager).detach(existingEntity);
+    verify(entityManager, never()).detach(any());
     verify(customerPersistenceEntityRepository).saveAndFlush(mergedEntity);
     verify(assembler, never()).fromDomain(any());
   }
@@ -290,7 +290,7 @@ class CustomerPersistenceProviderTest {
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Save failed");
 
-    verify(entityManager).detach(existingEntity);
+    verify(entityManager, never()).detach(any());
   }
 
   @Test

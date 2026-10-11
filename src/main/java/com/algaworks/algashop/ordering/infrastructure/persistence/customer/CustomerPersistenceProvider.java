@@ -1,10 +1,9 @@
 package com.algaworks.algashop.ordering.infrastructure.persistence.customer;
 
-import com.algaworks.algashop.ordering.domain.model.customer.Customer;
-import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import com.algaworks.algashop.ordering.domain.model.commons.Email;
+import com.algaworks.algashop.ordering.domain.model.customer.Customer;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
-import jakarta.persistence.EntityManager;
+import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -18,7 +17,6 @@ public class CustomerPersistenceProvider implements Customers {
   private final CustomerPersistenceEntityRepository customerPersistenceEntityRepository;
   private final CustomerPersistenceEntityDisassembler disassembler;
   private final CustomerPersistenceEntityAssembler assembler;
-  private final EntityManager entityManager;
 
   @Override
   public Optional<Customer> findById(CustomerId customerId) {
@@ -43,7 +41,6 @@ public class CustomerPersistenceProvider implements Customers {
 
   private void update(Customer aggregateRoot, CustomerPersistenceEntity persistenceEntity) {
     var persistenceEntityMerged = assembler.merge(persistenceEntity, aggregateRoot);
-    entityManager.detach(persistenceEntity);
     persistenceEntity = customerPersistenceEntityRepository.saveAndFlush(persistenceEntityMerged);
     updateVersion(aggregateRoot, persistenceEntity);
   }
