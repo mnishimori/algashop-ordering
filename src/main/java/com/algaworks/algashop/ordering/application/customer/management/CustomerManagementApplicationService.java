@@ -106,4 +106,15 @@ public class CustomerManagementApplicationService {
     customer.archive();
     customers.add(customer);
   }
+
+  @Transactional
+  public void changeEmail(CustomerId customerId, String email) {
+    Objects.requireNonNull(customerId);
+    Objects.requireNonNull(email);
+    var customer = customers.findById(customerId)
+        .orElseThrow(() -> new CustomerNotFoundException(customerId));
+    var emailToUpdate = new Email(email);
+    customerRegistrationService.changeEmail(customer, emailToUpdate);
+    customers.add(customer);
+  }
 }

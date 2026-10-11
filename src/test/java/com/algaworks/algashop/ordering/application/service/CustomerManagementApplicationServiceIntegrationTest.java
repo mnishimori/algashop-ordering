@@ -11,20 +11,20 @@ import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuil
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.NUMBER;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.PHONE;
 import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder.ZIP_CODE;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
-import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
 import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
+import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
-import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
 import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -145,6 +145,8 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(archivedCustomer.promotionNotificationsAllowed()).isFalse();
     assertThat(archivedCustomer.address().number()).isEqualTo("Anounymous");
     assertThat(archivedCustomer.address().complement()).isEqualTo("Anounymous");
+    assertThatThrownBy(() -> customerManagementApplicationService.archive(customer.id()))
+        .isInstanceOf(CustomerArchivedException.class);
   }
 
   @Test
