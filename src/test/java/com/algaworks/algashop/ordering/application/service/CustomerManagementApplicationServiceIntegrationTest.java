@@ -21,6 +21,8 @@ import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
 import com.algaworks.algashop.ordering.domain.model.customer.Customers;
@@ -121,6 +123,45 @@ class CustomerManagementApplicationServiceIntegrationTest {
 
     assertThatThrownBy(() -> customerManagementApplicationService.update(UUID.randomUUID(), customerUpdateInput))
         .isInstanceOf(CustomerNotFoundException.class);
+  }
+
+  @Test
+  void shouldArchiveCustomer() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+    customers.add(customer);
+
+    assertThatCode(() -> customerManagementApplicationService.archive(customer.id()))
+        .doesNotThrowAnyException();
+
+    var archivedCustomer = customers.findById(customer.id()).orElseThrow();
+    assertThat(archivedCustomer.archived()).isTrue();
+    assertThat(archivedCustomer.archivedAt()).isNotNull();
+    assertThat(archivedCustomer.fullName().firstName()).isEqualTo("Anounymous");
+    assertThat(archivedCustomer.fullName().lastName()).isEqualTo("Anounymous");
+    assertThat(archivedCustomer.email().value()).endsWith("@anonymous.com");
+    assertThat(archivedCustomer.phone()).isEqualTo("0000-0000");
+    assertThat(archivedCustomer.document()).isEqualTo("00000000000");
+    assertThat(archivedCustomer.birthDate()).isNull();
+    assertThat(archivedCustomer.promotionNotificationsAllowed()).isFalse();
+    assertThat(archivedCustomer.address().number()).isEqualTo("Anounymous");
+    assertThat(archivedCustomer.address().complement()).isEqualTo("Anounymous");
+  }
+
+  @Test
+  void shouldThrowExceptionWhenArchivingCustomerThatDoesNotExist() {
+    assertThatThrownBy(() -> customerManagementApplicationService.archive(new CustomerId()))
+        .isInstanceOf(CustomerNotFoundException.class);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenArchivingAlreadyArchivedCustomer() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+    customers.add(customer);
+
+    customerManagementApplicationService.archive(customer.id());
+
+    assertThatThrownBy(() -> customerManagementApplicationService.archive(customer.id()))
+        .isInstanceOf(CustomerArchivedException.class);
   }
 
   private static CustomerInput createCustomerInput(boolean promotionNotificationsAllowed, AddressData addressData) {
