@@ -54,4 +54,12 @@ public class ShoppingCartManagementApplicationService {
     shoppingCarts.add(shoppingCart);
   }
 
+  @Transactional
+  public void empty(UUID rawShoppingCartId) {
+    var shoppingCart = shoppingCarts.findById(new ShoppingCartId(rawShoppingCartId))
+        .orElseThrow(() -> new ShoppingCartNotFoundException(new ShoppingCartId(rawShoppingCartId)));
+    shoppingCart.empty();
+    shoppingCarts.add(shoppingCart);
+  }
+
 }

@@ -216,4 +216,36 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
 
     verify(shoppingCarts, never()).add(any(ShoppingCart.class));
   }
+
+  @Test
+  void shouldEmptyShoppingCart() {
+    var cart = aCartWithTwoProducts();
+    when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+
+    shoppingCartManagementApplicationService.empty(cart.id().value());
+
+    assertThat(cart.items()).isEmpty();
+    assertThat(cart.totalItems()).isEqualTo(Quantity.ZERO);
+    assertThat(cart.totalAmount()).isEqualTo(Money.ZERO);
+    verify(shoppingCarts).add(cart);
+  }
+
+  @Test
+  void shouldFailToEmptyShoppingCartWhenShoppingCartDoesNotExist() {
+    var cartId = UUID.randomUUID();
+    when(shoppingCarts.findById(new ShoppingCartId(cartId))).thenReturn(java.util.Optional.empty());
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.empty(cartId))
+        .isInstanceOf(ShoppingCartNotFoundException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToEmptyShoppingCartWhenShoppingCartIdIsNull() {
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.empty(null))
+        .isInstanceOf(NullPointerException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
 }
