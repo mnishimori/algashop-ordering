@@ -248,4 +248,34 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
 
     verify(shoppingCarts, never()).add(any(ShoppingCart.class));
   }
+
+  @Test
+  void shouldDeleteShoppingCart() {
+    var cart = aCartWithTwoProducts();
+    when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+
+    shoppingCartManagementApplicationService.delete(cart.id().value());
+
+    verify(shoppingCarts).remove(cart);
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToDeleteShoppingCartWhenShoppingCartDoesNotExist() {
+    var cartId = UUID.randomUUID();
+    when(shoppingCarts.findById(new ShoppingCartId(cartId))).thenReturn(java.util.Optional.empty());
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.delete(cartId))
+        .isInstanceOf(ShoppingCartNotFoundException.class);
+
+    verify(shoppingCarts, never()).remove(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToDeleteShoppingCartWhenShoppingCartIdIsNull() {
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.delete(null))
+        .isInstanceOf(NullPointerException.class);
+
+    verify(shoppingCarts, never()).remove(any(ShoppingCart.class));
+  }
 }
