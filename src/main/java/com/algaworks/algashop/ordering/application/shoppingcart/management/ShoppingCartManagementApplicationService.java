@@ -1,13 +1,16 @@
 package com.algaworks.algashop.ordering.application.shoppingcart.management;
 
 import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductCatalogService;
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartId;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCarts;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingService;
 import java.math.BigDecimal;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,7 @@ public class ShoppingCartManagementApplicationService {
 
   private final ShoppingCarts shoppingCarts;
   private final ProductCatalogService productCatalogService;
+  private final ShoppingService shoppingService;
 
   @Transactional
   public void addItem(ShoppingCartItemInput input) {
@@ -31,6 +35,14 @@ public class ShoppingCartManagementApplicationService {
     var productQuantity = new Quantity(quantity);
     shoppingCart.addItem(product, productQuantity);
     shoppingCarts.add(shoppingCart);
+  }
+
+  @Transactional
+  public ShoppingCartId createNew(UUID rawCustomerId) {
+    var customerId = new CustomerId(rawCustomerId);
+    var shoppingCart = shoppingService.startShopping(customerId);
+    shoppingCarts.add(shoppingCart);
+    return shoppingCart.shoppingCartId();
   }
 
 }

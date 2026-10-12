@@ -1,14 +1,21 @@
 package com.algaworks.algashop.ordering.application.shoppingcart.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.ShoppingCartTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.commons.Money;
 import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerAlreadyHaveShoppingCartException;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import com.algaworks.algashop.ordering.domain.model.product.Product;
 import com.algaworks.algashop.ordering.domain.model.product.ProductCatalogService;
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
@@ -19,6 +26,7 @@ import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCarts;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -33,6 +41,9 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
 
   @MockitoBean
   private ProductCatalogService productCatalogService;
+
+  @MockitoBean
+  private Customers customers;
 
   @Test
   void shouldAddItemToShoppingCart() {
@@ -69,5 +80,60 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThat(item.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
     assertThat(shoppingCart.totalItems()).isEqualTo(new Quantity(new BigDecimal("2")));
     assertThat(shoppingCart.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
+  }
+
+  @Test
+  void shouldCreateNewShoppingCart() {
+    var rawCustomerId = UUID.randomUUID();
+    var customerId = new CustomerId(rawCustomerId);
+    when(customers.existsById(customerId)).thenReturn(true);
+    when(shoppingCarts.ofCustomer(customerId)).thenReturn(java.util.Optional.empty());
+    doNothing().when(shoppingCarts).add(any(ShoppingCart.class));
+
+    var shoppingCartId = shoppingCartManagementApplicationService.createNew(rawCustomerId);
+
+    assertThat(shoppingCartId).isNotNull();
+    var captor = ArgumentCaptor.forClass(ShoppingCart.class);
+    verify(shoppingCarts).add(captor.capture());
+    var saved = captor.getValue();
+    assertThat(saved.id()).isEqualTo(shoppingCartId);
+    assertThat(saved.customerId()).isEqualTo(customerId);
+    assertThat(saved.items()).isEmpty();
+    assertThat(saved.totalAmount()).isEqualTo(Money.ZERO);
+    assertThat(saved.totalItems()).isEqualTo(Quantity.ZERO);
+  }
+
+  @Test
+  void shouldFailToCreateNewShoppingCartWhenCustomerDoesNotExist() {
+    var rawCustomerId = UUID.randomUUID();
+    var customerId = new CustomerId(rawCustomerId);
+    when(customers.existsById(customerId)).thenReturn(false);
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.createNew(rawCustomerId))
+        .isInstanceOf(CustomerNotFoundException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToCreateNewShoppingCartWhenCustomerAlreadyHasShoppingCart() {
+    var rawCustomerId = UUID.randomUUID();
+    var customerId = new CustomerId(rawCustomerId);
+    var existing = ShoppingCartTestDataBuilder.aShoppingCart().customerId(customerId).build();
+    when(customers.existsById(customerId)).thenReturn(true);
+    when(shoppingCarts.ofCustomer(customerId)).thenReturn(java.util.Optional.of(existing));
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.createNew(rawCustomerId))
+        .isInstanceOf(CustomerAlreadyHaveShoppingCartException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToCreateNewShoppingCartWhenCustomerIdIsNull() {
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.createNew(null))
+        .isInstanceOf(NullPointerException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
   }
 }
