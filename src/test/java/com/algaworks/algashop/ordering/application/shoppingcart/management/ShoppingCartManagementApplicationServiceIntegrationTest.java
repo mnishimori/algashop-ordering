@@ -60,15 +60,14 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
 
     shoppingCartManagementApplicationService.addItem(input);
 
-    var updatedShoppingCart = shoppingCart;
-    assertThat(updatedShoppingCart.items()).hasSize(1);
-    var item = updatedShoppingCart.items().iterator().next();
+    assertThat(shoppingCart.items()).hasSize(1);
+    var item = shoppingCart.items().iterator().next();
     assertThat(item.product()).isEqualTo(productId);
     assertThat(item.productName()).isEqualTo(new ProductName("Notebook"));
     assertThat(item.price()).isEqualTo(new Money(new BigDecimal("1000.00")));
     assertThat(item.quantity()).isEqualTo(new Quantity(new BigDecimal("2")));
     assertThat(item.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
-    assertThat(updatedShoppingCart.totalItems()).isEqualTo(new Quantity(new BigDecimal("2")));
-    assertThat(updatedShoppingCart.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
+    assertThat(shoppingCart.totalItems()).isEqualTo(new Quantity(new BigDecimal("2")));
+    assertThat(shoppingCart.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
   }
 }
