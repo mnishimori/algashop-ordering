@@ -22,6 +22,8 @@ import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductName;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCart;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartId;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartItemNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCarts;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -126,6 +128,84 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThatThrownBy(() -> shoppingCartManagementApplicationService.createNew(rawCustomerId))
         .isInstanceOf(CustomerAlreadyHaveShoppingCartException.class);
 
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  private ShoppingCart aCartWithTwoProducts() {
+    var cart = ShoppingCart.newShoppingCart(new CustomerId());
+    cart.addItem(aProduct("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "Notebook", "1000.00"),
+        new Quantity(new BigDecimal("2")));
+    cart.addItem(aProduct("cccccccc-cccc-cccc-cccc-cccccccccccc", "Mouse", "50.00"),
+        new Quantity(new BigDecimal("1")));
+    return cart;
+  }
+
+  private Product aProduct(String id, String name, String price) {
+    return Product.builder()
+        .id(new ProductId(UUID.fromString(id)))
+        .name(new ProductName(name))
+        .price(new Money(new BigDecimal(price)))
+        .inStock(true)
+        .build();
+  }
+
+  @Test
+  void shouldRemoveItemFromShoppingCart() {
+    var cart = aCartWithTwoProducts();
+    var notebook = cart.items().stream()
+        .filter(i -> i.productName().equals(new ProductName("Notebook")))
+        .findFirst().orElseThrow();
+    when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+
+    shoppingCartManagementApplicationService.removeItem(cart.id().value(), notebook.id().value());
+
+    assertThat(cart.items()).hasSize(1);
+    assertThat(cart.items()).noneMatch(i -> i.id().equals(notebook.id()));
+    assertThat(cart.totalItems()).isEqualTo(new Quantity(new BigDecimal("1")));
+    assertThat(cart.totalAmount()).isEqualTo(new Money(new BigDecimal("50.00")));
+    verify(shoppingCarts).add(cart);
+  }
+
+  @Test
+  void shouldFailToRemoveItemWhenShoppingCartDoesNotExist() {
+    var cartId = UUID.randomUUID();
+    when(shoppingCarts.findById(new ShoppingCartId(cartId))).thenReturn(java.util.Optional.empty());
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.removeItem(cartId, UUID.randomUUID()))
+        .isInstanceOf(ShoppingCartNotFoundException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToRemoveItemWhenItemDoesNotExistInShoppingCart() {
+    var cart = aCartWithTwoProducts();
+    when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.removeItem(cart.id().value(), UUID.randomUUID()))
+        .isInstanceOf(ShoppingCartItemNotFoundException.class);
+
+    assertThat(cart.items()).hasSize(2);
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToRemoveItemWhenShoppingCartIdIsNull() {
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.removeItem(null, UUID.randomUUID()))
+        .isInstanceOf(NullPointerException.class);
+
+    verify(shoppingCarts, never()).add(any(ShoppingCart.class));
+  }
+
+  @Test
+  void shouldFailToRemoveItemWhenItemIdIsNull() {
+    var cart = aCartWithTwoProducts();
+    when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+
+    assertThatThrownBy(() -> shoppingCartManagementApplicationService.removeItem(cart.id().value(), null))
+        .isInstanceOf(NullPointerException.class);
+
+    assertThat(cart.items()).hasSize(2);
     verify(shoppingCarts, never()).add(any(ShoppingCart.class));
   }
 

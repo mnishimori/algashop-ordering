@@ -6,6 +6,7 @@ import com.algaworks.algashop.ordering.domain.model.product.ProductCatalogServic
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartId;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartItemId;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCarts;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingService;
@@ -43,6 +44,14 @@ public class ShoppingCartManagementApplicationService {
     var shoppingCart = shoppingService.startShopping(customerId);
     shoppingCarts.add(shoppingCart);
     return shoppingCart.shoppingCartId();
+  }
+
+  @Transactional
+  public void removeItem(UUID rawShoppingCartId, UUID rawShoppingCartItemId) {
+    var shoppingCart = shoppingCarts.findById(new ShoppingCartId(rawShoppingCartId))
+        .orElseThrow(() -> new ShoppingCartNotFoundException(new ShoppingCartId(rawShoppingCartId)));
+    shoppingCart.removeItem(new ShoppingCartItemId(rawShoppingCartItemId));
+    shoppingCarts.add(shoppingCart);
   }
 
 }
