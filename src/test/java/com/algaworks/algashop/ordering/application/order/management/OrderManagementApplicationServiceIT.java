@@ -57,4 +57,26 @@ class OrderManagementApplicationServiceIT {
         .isInstanceOf(OrderCannotBeCanceledException.class);
   }
 
+  @Test
+  void shouldMarkOrderAsPaidSuccessfully() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.PLACED)
+        .build();
+    orders.add(order);
+
+    orderManagementApplicationService.markAsPaid(order.id().value().toLong());
+
+    var paidOrder = orders.findById(order.id()).orElseThrow();
+    assertThat(paidOrder.status()).isEqualTo(OrderStatus.PAID);
+    assertThat(paidOrder.paidAt()).isNotNull();
+  }
+
+  @Test
+  void shouldThrowExceptionWhenPaidOrderIsNotFound() {
+    var nonExistingOrderId = new OrderId().value().toLong();
+
+    assertThatThrownBy(() -> orderManagementApplicationService.markAsPaid(nonExistingOrderId))
+        .isInstanceOf(OrderNotFoundException.class);
+  }
+
 }
