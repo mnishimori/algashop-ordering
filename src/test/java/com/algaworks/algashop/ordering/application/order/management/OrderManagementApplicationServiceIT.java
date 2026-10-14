@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBeCanceledException;
+import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBeReadyException;
 import com.algaworks.algashop.ordering.domain.model.order.OrderId;
 import com.algaworks.algashop.ordering.domain.model.order.OrderNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.order.OrderStatus;
@@ -72,11 +73,47 @@ class OrderManagementApplicationServiceIT {
   }
 
   @Test
+  void shouldMarkOrderAsReadySuccessfully() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.PAID)
+        .paidAt(OffsetDateTime.now())
+        .build();
+    orders.add(order);
+
+    orderManagementApplicationService.markAsReady(order.id().value().toLong());
+
+    var readyOrder = orders.findById(order.id()).orElseThrow();
+    assertThat(readyOrder.status()).isEqualTo(OrderStatus.READY);
+    assertThat(readyOrder.readyAt()).isNotNull();
+  }
+
+  @Test
+  void shouldThrowExceptionWhenOrderIsNotFoundForMarkAsReady() {
+    var nonExistingOrderId = new OrderId().value().toLong();
+
+    assertThatThrownBy(() -> orderManagementApplicationService.markAsReady(nonExistingOrderId))
+        .isInstanceOf(OrderNotFoundException.class);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenOrderIsNotPaidForMarkAsReady() {
+    var order = OrderTestDataBuilder.anOrder()
+        .status(OrderStatus.PLACED)
+        .build();
+    orders.add(order);
+
+    assertThatThrownBy(() -> orderManagementApplicationService.markAsReady(order.id().value().toLong()))
+        .isInstanceOf(OrderCannotBeReadyException.class);
+  }
+
+  @Test
   void shouldThrowExceptionWhenPaidOrderIsNotFound() {
     var nonExistingOrderId = new OrderId().value().toLong();
 
     assertThatThrownBy(() -> orderManagementApplicationService.markAsPaid(nonExistingOrderId))
         .isInstanceOf(OrderNotFoundException.class);
   }
+
+
 
 }

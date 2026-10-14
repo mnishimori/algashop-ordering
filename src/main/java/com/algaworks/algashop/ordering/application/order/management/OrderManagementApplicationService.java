@@ -31,4 +31,13 @@ public class OrderManagementApplicationService {
     orders.add(order);
   }
 
+  @Transactional
+  public void markAsReady(Long rawOrderId) {
+    var orderId = new OrderId(rawOrderId);
+    var order = orders.findById(orderId)
+        .orElseThrow(() -> new OrderNotFoundException(orderId));
+    order.markAsReady();
+    orders.add(order);
+  }
+
 }
