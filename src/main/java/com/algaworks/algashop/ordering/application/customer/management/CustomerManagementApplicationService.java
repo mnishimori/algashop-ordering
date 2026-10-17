@@ -43,6 +43,7 @@ public class CustomerManagementApplicationService {
 
     var customer = customerRegistrationService.register(fullName, birthDate.value(), email.value(), phone.value(),
         document.value(), customerInput.getPromotionNotificationsAllowed(), address);
+    customers.add(customer);
     return customer.id().value();
   }
 

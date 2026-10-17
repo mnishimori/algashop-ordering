@@ -14,6 +14,9 @@ import static com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuil
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.application.commons.AddressData;
@@ -25,19 +28,23 @@ import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedExc
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerRegisteredEvent;
 import com.algaworks.algashop.ordering.domain.model.customer.Customers;
+import com.algaworks.algashop.ordering.infrastructure.listener.customer.CustomerEventListener;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @IntegrationTest
 class CustomerManagementApplicationServiceIntegrationTest {
 
   @Autowired
   private CustomerManagementApplicationService customerManagementApplicationService;
-
   @Autowired
   private Customers customers;
+  @MockitoSpyBean
+  private CustomerEventListener customerEventListener;
 
   @Test
   void shouldCreateCustomer() {
@@ -47,6 +54,16 @@ class CustomerManagementApplicationServiceIntegrationTest {
     var customerId = customerManagementApplicationService.create(customerInput);
 
     assertThat(customerId).isNotNull();
+    assertThat(customers.existsById(new CustomerId(customerId))).isTrue();
+
+    var saved = customers.findById(new CustomerId(customerId)).orElseThrow();
+    assertThat(saved.fullName().firstName()).isEqualTo(customerInput.getFirstName());
+    assertThat(saved.fullName().lastName()).isEqualTo(customerInput.getLastName());
+    assertThat(saved.email().value()).isEqualTo(customerInput.getEmail());
+    assertThat(saved.document()).isEqualTo(customerInput.getDocument());
+    assertThat(saved.phone()).isEqualTo(customerInput.getPhone());
+    assertThat(saved.archived()).isFalse();
+    verify(customerEventListener).listen(any(CustomerRegisteredEvent.class));
   }
 
   @Test
@@ -76,7 +93,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(customerOutput.getBirthDate()).isEqualTo(customer.birthDate());
     assertThat(customerOutput.isPromotionNotificationsAllowed()).isEqualTo(customer.promotionNotificationsAllowed());
     assertThat(customerOutput.getLoyaltyPoints()).isEqualTo(customer.loyaltyPoints().value());
-    assertThat(customerOutput.getRegisteredAt()).isEqualTo(customer.registeredAt());
+    assertThat(customerOutput.getRegisteredAt().toLocalDate()).isEqualTo(customer.registeredAt().toLocalDate());
     assertThat(customerOutput.isArchived()).isEqualTo(customer.archived());
     assertThat(customerOutput.getAddress().getStreet()).isEqualTo(customer.address().street());
     assertThat(customerOutput.getAddress().getNumber()).isEqualTo(customer.address().number());
@@ -107,7 +124,8 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(updatedCustomer.fullName().firstName()).isEqualTo(customerUpdateInput.getFirstName());
     assertThat(updatedCustomer.fullName().lastName()).isEqualTo(customerUpdateInput.getLastName());
     assertThat(updatedCustomer.phone()).isEqualTo(customerUpdateInput.getPhone());
-    assertThat(updatedCustomer.promotionNotificationsAllowed()).isEqualTo(customerUpdateInput.getPromotionNotificationsAllowed());
+    assertThat(updatedCustomer.promotionNotificationsAllowed()).isEqualTo(
+        customerUpdateInput.getPromotionNotificationsAllowed());
     assertThat(updatedCustomer.address().street()).isEqualTo(customerUpdateInput.getAddress().getStreet());
     assertThat(updatedCustomer.address().number()).isEqualTo(customerUpdateInput.getAddress().getNumber());
     assertThat(updatedCustomer.address().complement()).isEqualTo(customerUpdateInput.getAddress().getComplement());
@@ -123,6 +141,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
 
     assertThatThrownBy(() -> customerManagementApplicationService.update(UUID.randomUUID(), customerUpdateInput))
         .isInstanceOf(CustomerNotFoundException.class);
+    verify(customerEventListener, never()).listen(any(CustomerRegisteredEvent.class));
   }
 
   @Test

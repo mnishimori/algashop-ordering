@@ -8,6 +8,7 @@ import com.algaworks.algashop.ordering.domain.model.customer.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 public class CustomerTestDataBuilder {
 
@@ -34,9 +35,9 @@ public class CustomerTestDataBuilder {
 
   public static Customer.ExistedCustomerBuilder existedCustomer() {
     var address = createCustomerAddress();
-    return Customer.existed().customerId(new CustomerId()).fullName(new FullName(FIRST_NAME, LAST_NAME)).birthDate(BIRTH_DATE).email(EMAIL)
-        .phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true).address(address)
-        .loyaltyPoints(LoyaltyPoints.ZERO).archived(false);
+    return Customer.existed().customerId(new CustomerId()).fullName(new FullName(FIRST_NAME, LAST_NAME))
+        .birthDate(BIRTH_DATE).email(EMAIL).phone(PHONE).document(DOCUMENT).promotionNotificationsAllowed(true)
+        .address(address).registeredAt(OffsetDateTime.now()).loyaltyPoints(LoyaltyPoints.ZERO).archived(false);
   }
 
   private static Address createCustomerAddress() {

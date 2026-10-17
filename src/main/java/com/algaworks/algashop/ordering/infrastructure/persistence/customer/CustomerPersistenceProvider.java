@@ -37,6 +37,7 @@ public class CustomerPersistenceProvider implements Customers {
     } else {
       insert(aggregateRoot);
     }
+    aggregateRoot.clearDomainEvents();
   }
 
   private void update(Customer aggregateRoot, CustomerPersistenceEntity persistenceEntity) {

@@ -11,11 +11,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.model.customer.Customer;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedEvent;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerRegisteredEvent;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
 import com.algaworks.algashop.ordering.domain.model.commons.Email;
 import com.algaworks.algashop.ordering.domain.model.commons.FullName;
 import com.algaworks.algashop.ordering.domain.model.customer.LoyaltyPoints;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.DomainEventSource;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,22 @@ class CustomerTest {
     assertThat(customer.archived()).isFalse();
     assertThat(customer.archivedAt()).isNull();
     assertThat(customer.loyaltyPoints()).isEqualTo(LoyaltyPoints.ZERO);
+  }
+
+  @Test
+  @DisplayName("Should publish customer registered event when creating brand new customer")
+  void shouldPublishCustomerRegisteredEventWhenCreatingBrandNewCustomer() {
+    var customer = CustomerTestDataBuilder.brandNewCustomer().build();
+
+    assertThat(customer).isInstanceOf(DomainEventSource.class);
+    assertThat(((DomainEventSource) customer).domainEvents())
+        .singleElement()
+        .isInstanceOf(CustomerRegisteredEvent.class)
+        .satisfies(event -> {
+          var customerRegisteredEvent = (CustomerRegisteredEvent) event;
+          assertThat(customerRegisteredEvent.customerId()).isEqualTo(customer.id());
+          assertThat(customerRegisteredEvent.registeredAt()).isEqualTo(customer.registeredAt());
+        });
   }
 
   @Test
@@ -236,6 +255,23 @@ class CustomerTest {
     assertThat(customer.phone()).isEqualTo("0000-0000");
     assertThat(customer.document()).isEqualTo("00000000000");
     assertThat(customer.birthDate()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should publish customer archived event when archiving customer")
+  void shouldPublishCustomerArchivedEventWhenArchivingCustomer() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+
+    customer.archive();
+
+    assertThat(customer.domainEvents())
+        .singleElement()
+        .isInstanceOf(CustomerArchivedEvent.class)
+        .satisfies(event -> {
+          var customerArchivedEvent = (CustomerArchivedEvent) event;
+          assertThat(customerArchivedEvent.customerId()).isEqualTo(customer.id());
+          assertThat(customerArchivedEvent.registeredAt()).isEqualTo(customer.archivedAt());
+        });
   }
 
   @Test
