@@ -64,5 +64,8 @@ build/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+
 ### PRD e TechSpec ###
 .ai-templates/SIPA-*
