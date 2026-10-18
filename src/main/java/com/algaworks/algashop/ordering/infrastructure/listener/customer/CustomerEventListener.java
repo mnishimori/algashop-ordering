@@ -2,6 +2,7 @@ package com.algaworks.algashop.ordering.infrastructure.listener.customer;
 
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationService;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedEvent;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerRegisteredEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,9 @@ public class CustomerEventListener {
   @EventListener
   public void listen(CustomerRegisteredEvent event) {
     log.info("Customer {} registered at {}", event.customerId(), event.registeredAt());
-    customerNotificationService.notifyNewCustomerRegistration(event.customerId().value());
+    var input = new CustomerNotificationService.NotifyNewRegistrationInput(event.customerId().value(),
+        event.fullName().firstName(), event.email().value());
+    customerNotificationService.notifyNewCustomerRegistration(input);
   }
 
   @EventListener

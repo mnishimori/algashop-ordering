@@ -24,6 +24,7 @@ import com.algaworks.algashop.ordering.application.customer.management.CustomerI
 import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationService;
+import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationService.NotifyNewRegistrationInput;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
@@ -66,7 +67,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(saved.phone()).isEqualTo(customerInput.getPhone());
     assertThat(saved.archived()).isFalse();
     verify(customerEventListener).listen(any(CustomerRegisteredEvent.class));
-    verify(customerNotificationService).notifyNewCustomerRegistration(any(UUID.class));
+    verify(customerNotificationService).notifyNewCustomerRegistration(any(NotifyNewRegistrationInput.class));
   }
 
   @Test

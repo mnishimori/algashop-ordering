@@ -41,7 +41,7 @@ public class Customer extends AbstractEventSourceEntity implements AggregateRoot
     var customer = new Customer(customerId, fullName, birthDate, email, phone, document, promotionNotificationsAllowed,
         false,
         null, registeredAt, LoyaltyPoints.ZERO, address);
-    customer.publishEvent(new CustomerRegisteredEvent(customerId, registeredAt));
+    customer.publishEvent(new CustomerRegisteredEvent(customerId, registeredAt, customer.fullName(), customer.email()));
     return customer;
   }
 

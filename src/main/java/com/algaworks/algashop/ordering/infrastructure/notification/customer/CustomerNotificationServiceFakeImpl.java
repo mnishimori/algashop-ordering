@@ -17,10 +17,8 @@ public class CustomerNotificationServiceFakeImpl implements CustomerNotification
   private final Customers customers;
 
   @Override
-  public void notifyNewCustomerRegistration(UUID id) {
-    var customerId = new CustomerId(id);
-    var customer = customers.findById(customerId).orElseThrow(() -> new CustomerNotFoundException(customerId));
-    log.info("Welcome {}", customer.fullName().firstName());
-    log.info("User your email to access your account {}", customer.email());
+  public void notifyNewCustomerRegistration(NotifyNewRegistrationInput input) {
+    log.info("Welcome {}", input.firstname());
+    log.info("User your email to access your account {}", input.email());
   }
 }
