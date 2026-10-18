@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
+import com.algaworks.algashop.ordering.application.customer.loyaltypoints.CustomerLoyaltyPointsApplicationService;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.OrderTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.commons.Money;
