@@ -19,10 +19,12 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,6 +32,7 @@ import lombok.ToString;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.AbstractAggregateRoot;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -38,10 +41,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Setter
 @ToString(of = "id")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @EntityListeners(AuditingEntityListener.class)
-public class OrderPersistenceEntity {
+public class OrderPersistenceEntity extends AbstractAggregateRoot<OrderPersistenceEntity> {
 
   @Id
+  @EqualsAndHashCode.Include
   private Long id;
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
   @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
@@ -140,5 +145,16 @@ public class OrderPersistenceEntity {
     }
     item.setOrder(this);
     this.items.add(item);
+  }
+
+  public Collection<Object> getEvents() {
+    return super.domainEvents();
+  }
+
+  public void addEvents(Collection<Object> events) {
+    if (events == null || events.isEmpty()) {
+      return;
+    }
+    events.forEach(this::registerEvent);
   }
 }

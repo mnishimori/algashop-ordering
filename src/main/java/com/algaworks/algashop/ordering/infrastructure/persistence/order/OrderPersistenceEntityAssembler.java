@@ -42,6 +42,7 @@ public class OrderPersistenceEntityAssembler {
     var items = mergeItems(orderPersistenceEntity, order);
     orderPersistenceEntity.addOrderIntoItems(items);
     orderPersistenceEntity.setItems(items);
+    orderPersistenceEntity.addEvents(order.domainEvents());
     return orderPersistenceEntity;
   }
 

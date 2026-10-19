@@ -78,11 +78,10 @@ public class CustomerPersistenceEntity extends AbstractAggregateRoot<CustomerPer
   }
 
   public void addEvents(Collection<Object> events) {
-    if (events != null) {
-      for (Object event : events) {
-        this.registerEvent(event);
-      }
+    if (events == null || events.isEmpty()) {
+      return;
     }
+    events.forEach(this::registerEvent);
   }
 
 }

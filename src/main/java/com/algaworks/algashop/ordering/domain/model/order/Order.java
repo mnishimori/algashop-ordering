@@ -79,6 +79,8 @@ public class Order extends AbstractEventSourceEntity implements AggregateRoot<Or
     this.verifyIfCanChangeToPlaced();
     changeStatus(OrderStatus.PLACED);
     this.setPlacedAt(OffsetDateTime.now());
+    var orderPlacedEvent = new OrderPlacedEvent(this.id(), this.customerId(), this.placedAt());
+    this.publishEvent(orderPlacedEvent);
   }
 
   private void verifyIfCanChangeToPlaced() {
@@ -160,11 +162,15 @@ public class Order extends AbstractEventSourceEntity implements AggregateRoot<Or
     this.verifyIfCanChangeToReady();
     this.changeStatus(OrderStatus.READY);
     this.setReadyAt(OffsetDateTime.now());
+    var orderReadyEvent = new OrderReadyEvent(this.id(), this.customerId(), this.readyAt());
+    this.publishEvent(orderReadyEvent);
   }
 
   public void markAsPaid() {
     this.changeStatus(OrderStatus.PAID);
     this.setPaidAt(OffsetDateTime.now());
+    var orderPaidEvent = new OrderPaidEvent(this.id(), this.customerId(), this.paidAt());
+    this.publishEvent(orderPaidEvent);
   }
 
   private void verifyIfCanChangeToReady() {
@@ -177,6 +183,8 @@ public class Order extends AbstractEventSourceEntity implements AggregateRoot<Or
     this.verifyIfCanCancel();
     this.changeStatus(OrderStatus.CANCELED);
     this.setCanceledAt(OffsetDateTime.now());
+    var orderCanceledEvent = new OrderCanceledEvent(this.id(), this.customerId(), this.canceledAt());
+    this.publishEvent(orderCanceledEvent);
   }
 
   private void verifyIfCanCancel() {

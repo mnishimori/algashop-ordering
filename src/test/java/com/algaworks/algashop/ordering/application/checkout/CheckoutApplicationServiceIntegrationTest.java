@@ -18,6 +18,7 @@ import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
 import com.algaworks.algashop.ordering.domain.model.order.Order;
 import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBePlacedException;
+import com.algaworks.algashop.ordering.domain.model.order.OrderPlacedEvent;
 import com.algaworks.algashop.ordering.domain.model.order.Orders;
 import com.algaworks.algashop.ordering.domain.model.order.shipping.OriginAddressService;
 import com.algaworks.algashop.ordering.domain.model.order.shipping.ShippingCostService;
@@ -80,6 +81,15 @@ class CheckoutApplicationServiceIntegrationTest {
     assertThat(order.shipping().shippingCost()).isEqualTo(new Money("15.00"));
     assertThat(order.billing().fullName().firstName()).isEqualTo(CustomerTestDataBuilder.FIRST_NAME);
     assertThat(order.shipping().address().zipCode()).isEqualTo(new ZipCode(CustomerTestDataBuilder.ZIP_CODE));
+    assertThat(order.domainEvents())
+        .singleElement()
+        .isInstanceOf(OrderPlacedEvent.class)
+        .satisfies(event -> {
+          var placedEvent = (OrderPlacedEvent) event;
+          assertThat(placedEvent.orderId()).isEqualTo(order.id());
+          assertThat(placedEvent.customerId()).isEqualTo(order.customerId());
+          assertThat(placedEvent.placedAt()).isNotNull();
+        });
     verify(shoppingCarts).add(shoppingCart);
     assertThat(shoppingCart.isEmpty()).isTrue();
     verify(shippingCostService).calculate(any());
