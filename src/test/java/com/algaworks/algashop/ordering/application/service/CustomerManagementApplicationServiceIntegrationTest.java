@@ -23,8 +23,8 @@ import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
-import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationService;
-import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationService.NotifyNewRegistrationInput;
+import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService;
+import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService.NotifyNewRegistrationInput;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.model.customer.CustomerEmailIsInUseException;
@@ -48,7 +48,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
   @MockitoSpyBean
   private CustomerEventListener customerEventListener;
   @MockitoSpyBean
-  private CustomerNotificationService customerNotificationService;
+  private CustomerNotificationApplicationService customerNotificationApplicationService;
 
   @Test
   void shouldCreateCustomer() {
@@ -67,7 +67,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     assertThat(saved.phone()).isEqualTo(customerInput.getPhone());
     assertThat(saved.archived()).isFalse();
     verify(customerEventListener).listen(any(CustomerRegisteredEvent.class));
-    verify(customerNotificationService).notifyNewCustomerRegistration(any(NotifyNewRegistrationInput.class));
+    verify(customerNotificationApplicationService).notifyNewCustomerRegistration(any(NotifyNewRegistrationInput.class));
   }
 
   @Test
