@@ -34,14 +34,15 @@ public class Customer extends AbstractEventSourceEntity implements AggregateRoot
 
   @Builder(builderMethodName = "brandnew", builderClassName = "BrandNewCustomerBuilder")
   private static Customer createBrandNew(FullName fullName, LocalDate birthDate, String email, String phone,
-      String document,
-      Boolean promotionNotificationsAllowed, Address address) {
+      String document, Boolean promotionNotificationsAllowed, Address address) {
     var customerId = new CustomerId(UUID.randomUUID());
     var registeredAt = OffsetDateTime.now();
     var customer = new Customer(customerId, fullName, birthDate, email, phone, document, promotionNotificationsAllowed,
         false,
         null, registeredAt, LoyaltyPoints.ZERO, address);
-    customer.publishEvent(new CustomerRegisteredEvent(customerId, registeredAt, customer.fullName(), customer.email()));
+    var customerRegisteredEvent = new CustomerRegisteredEvent(customerId, registeredAt, customer.fullName(),
+        customer.email());
+    customer.publishEvent(customerRegisteredEvent);
     return customer;
   }
 

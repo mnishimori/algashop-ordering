@@ -24,9 +24,13 @@ public class ShoppingCart extends AbstractEventSourceEntity implements Aggregate
   private Set<ShoppingCartItem> items;
 
   public static ShoppingCart newShoppingCart(CustomerId customerId) {
-    return new ShoppingCart(new ShoppingCartId(), customerId, Money.ZERO, Quantity.ZERO, OffsetDateTime.now(),
-        new HashSet<>()
-    );
+    var shoppingCartId = new ShoppingCartId();
+    var shoppingCart = new ShoppingCart(shoppingCartId, customerId, Money.ZERO, Quantity.ZERO,
+        OffsetDateTime.now(), new HashSet<>());
+    var shoppingCartCreatedEvent = new ShoppingCartCreatedEvent(shoppingCart.shoppingCartId(), customerId,
+        OffsetDateTime.now());
+    shoppingCart.publishEvent(shoppingCartCreatedEvent);
+    return shoppingCart;
   }
 
   @Builder(builderClassName = "ShoppingCartBuilder", builderMethodName = "existingShoppingCartBuilder")
@@ -64,6 +68,9 @@ public class ShoppingCart extends AbstractEventSourceEntity implements Aggregate
   private void addNewItem(Product product, Quantity quantity) {
     var shoppingCartItem = ShoppingCartItem.brandNew(this.shoppingCartId, product, quantity);
     this.items.add(shoppingCartItem);
+    var shoppingCartItemAddedEvent = new ShoppingCartItemAddedEvent(shoppingCartItem.id(), this.customerId(),
+        product.id(), OffsetDateTime.now());
+    this.publishEvent(shoppingCartItemAddedEvent);
   }
 
   private void recalculateTotals() {
@@ -76,6 +83,9 @@ public class ShoppingCart extends AbstractEventSourceEntity implements Aggregate
     var item = findItemById(shoppingCartItemId);
     this.items.remove(item);
     recalculateTotals();
+    var shoppingCartItemRemovedEvent = new ShoppingCartItemRemovedEvent(shoppingCartItemId, this.customerId(),
+        item.product(), OffsetDateTime.now());
+    this.publishEvent(shoppingCartItemRemovedEvent);
   }
 
   public void setShoppingCartId(ShoppingCartId shoppingCartId) {
@@ -117,6 +127,8 @@ public class ShoppingCart extends AbstractEventSourceEntity implements Aggregate
   public void empty() {
     this.items.clear();
     recalculateTotals();
+    var shoppingCartEmptyEvent = new ShoppingCartEmptyEvent(this.shoppingCartId(), this.customerId(), this.createdAt());
+    this.publishEvent(shoppingCartEmptyEvent);
   }
 
   public void setCustomerId(CustomerId customerId) {

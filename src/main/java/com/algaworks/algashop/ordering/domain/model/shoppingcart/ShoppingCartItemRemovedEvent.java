@@ -4,7 +4,7 @@ import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import java.time.OffsetDateTime;
 
-public record ShoppingCartItemRemovedEvent(ShoppingCartId shoppingCartId, CustomerId customerId,
+public record ShoppingCartItemRemovedEvent(ShoppingCartItemId shoppingCartItemId, CustomerId customerId,
                                            ProductId productId, OffsetDateTime removedAt) {
 
 }

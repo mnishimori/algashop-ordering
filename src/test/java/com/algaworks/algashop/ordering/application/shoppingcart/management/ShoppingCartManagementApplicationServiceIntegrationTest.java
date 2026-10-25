@@ -21,7 +21,11 @@ import com.algaworks.algashop.ordering.domain.model.product.ProductCatalogServic
 import com.algaworks.algashop.ordering.domain.model.product.ProductId;
 import com.algaworks.algashop.ordering.domain.model.product.ProductName;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCart;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartCreatedEvent;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartEmptyEvent;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartId;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartItemAddedEvent;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartItemRemovedEvent;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartItemNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartNotFoundException;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCarts;
@@ -65,6 +69,8 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
         .build();
     when(productCatalogService.ofId(productId)).thenReturn(java.util.Optional.of(product));
 
+    shoppingCart.clearDomainEvents();
+
     var input = ShoppingCartItemInput.builder()
         .shoppingCartId(shoppingCart.id().value())
         .productId(productId.value())
@@ -82,6 +88,15 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThat(item.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
     assertThat(shoppingCart.totalItems()).isEqualTo(new Quantity(new BigDecimal("2")));
     assertThat(shoppingCart.totalAmount()).isEqualTo(new Money(new BigDecimal("2000.00")));
+    assertThat(shoppingCart.domainEvents())
+        .singleElement()
+        .isInstanceOf(ShoppingCartItemAddedEvent.class)
+        .satisfies(event -> {
+          var added = (ShoppingCartItemAddedEvent) event;
+          assertThat(added.shoppingCartItemId()).isEqualTo(item.id());
+          assertThat(added.customerId()).isEqualTo(shoppingCart.customerId());
+          assertThat(added.productId()).isEqualTo(productId);
+        });
   }
 
   @Test
@@ -103,6 +118,14 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThat(saved.items()).isEmpty();
     assertThat(saved.totalAmount()).isEqualTo(Money.ZERO);
     assertThat(saved.totalItems()).isEqualTo(Quantity.ZERO);
+    assertThat(saved.domainEvents())
+        .singleElement()
+        .isInstanceOf(ShoppingCartCreatedEvent.class)
+        .satisfies(event -> {
+          var created = (ShoppingCartCreatedEvent) event;
+          assertThat(created.shoppingCartId()).isEqualTo(shoppingCartId);
+          assertThat(created.customerId()).isEqualTo(customerId);
+        });
   }
 
   @Test
@@ -156,6 +179,7 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
         .filter(i -> i.productName().equals(new ProductName("Notebook")))
         .findFirst().orElseThrow();
     when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+    cart.clearDomainEvents();
 
     shoppingCartManagementApplicationService.removeItem(cart.id().value(), notebook.id().value());
 
@@ -164,6 +188,14 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThat(cart.totalItems()).isEqualTo(new Quantity(new BigDecimal("1")));
     assertThat(cart.totalAmount()).isEqualTo(new Money(new BigDecimal("50.00")));
     verify(shoppingCarts).add(cart);
+    assertThat(cart.domainEvents())
+        .singleElement()
+        .isInstanceOf(ShoppingCartItemRemovedEvent.class)
+        .satisfies(event -> {
+          var removed = (ShoppingCartItemRemovedEvent) event;
+          assertThat(removed.shoppingCartItemId()).isEqualTo(notebook.id());
+          assertThat(removed.customerId()).isEqualTo(cart.customerId());
+        });
   }
 
   @Test
@@ -221,6 +253,7 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
   void shouldEmptyShoppingCart() {
     var cart = aCartWithTwoProducts();
     when(shoppingCarts.findById(cart.id())).thenReturn(java.util.Optional.of(cart));
+    cart.clearDomainEvents();
 
     shoppingCartManagementApplicationService.empty(cart.id().value());
 
@@ -228,6 +261,14 @@ class ShoppingCartManagementApplicationServiceIntegrationTest {
     assertThat(cart.totalItems()).isEqualTo(Quantity.ZERO);
     assertThat(cart.totalAmount()).isEqualTo(Money.ZERO);
     verify(shoppingCarts).add(cart);
+    assertThat(cart.domainEvents())
+        .singleElement()
+        .isInstanceOf(ShoppingCartEmptyEvent.class)
+        .satisfies(event -> {
+          var emptied = (ShoppingCartEmptyEvent) event;
+          assertThat(emptied.shoppingCartId()).isEqualTo(cart.id());
+          assertThat(emptied.customerId()).isEqualTo(cart.customerId());
+        });
   }
 
   @Test
