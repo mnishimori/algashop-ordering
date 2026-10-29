@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.ProductTestDataBuilder;
+import com.algaworks.algashop.ordering.domain.model.customer.Customer;
 import com.algaworks.algashop.ordering.domain.model.order.BuyNowService;
+import com.algaworks.algashop.ordering.domain.model.order.CustomerHaveFreeShippingSpecification;
 import com.algaworks.algashop.ordering.domain.model.order.PaymentMethod;
 import com.algaworks.algashop.ordering.domain.model.product.ProductOutOfStockException;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
@@ -20,21 +22,27 @@ import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
 import com.algaworks.algashop.ordering.domain.model.order.Recipient;
 import com.algaworks.algashop.ordering.domain.model.order.Shipping;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
-import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("BuyNowService")
+@ExtendWith(MockitoExtension.class)
 class BuyNowServiceTest {
 
-  private final BuyNowService buyNowService = new BuyNowService();
+  @Mock
+  private CustomerHaveFreeShippingSpecification customerHaveFreeShippingSpecification;
+  @InjectMocks
+  private BuyNowService buyNowService;
 
   @Test
   @DisplayName("Should buy a valid product and place the order")
   void shouldBuyValidProductAndPlaceOrder() {
-    var customerId = aCustomerId();
+    var customer = createExistedCustomer();
     var product = ProductTestDataBuilder.createProduct(new ProductName("Notebook Pro"), new Money("1000.00"), true)
         .build();
     var quantity = new Quantity(new BigDecimal("2"));
@@ -42,10 +50,10 @@ class BuyNowServiceTest {
     var shipping = shippingInfo(new Money("15.00"));
     var paymentMethod = PaymentMethod.CREDIT_CARD;
 
-    var order = buyNowService.buyNow(product, customerId, billing, shipping, quantity, paymentMethod);
+    var order = buyNowService.buyNow(product, customer, billing, shipping, quantity, paymentMethod);
 
     assertThat(order).isNotNull();
-    assertThat(order.customerId()).isEqualTo(customerId);
+    assertThat(order.customerId()).isEqualTo(customer.id());
     assertThat(order.paymentMethod()).isEqualTo(paymentMethod);
     assertThat(order.billing()).isEqualTo(billing);
     assertThat(order.shipping()).isEqualTo(shipping);
@@ -66,10 +74,10 @@ class BuyNowServiceTest {
   @Test
   @DisplayName("Should throw ProductOutOfStockException when product is unavailable")
   void shouldThrowWhenProductIsOutOfStock() {
-    var customerId = aCustomerId();
+    var customer = createExistedCustomer();
     var product = ProductTestDataBuilder.aProductUnavailable().build();
 
-    assertThatThrownBy(() -> buyNowService.buyNow(product, customerId, billingInfo(), shippingInfo(new Money("15.00")),
+    assertThatThrownBy(() -> buyNowService.buyNow(product, customer, billingInfo(), shippingInfo(new Money("15.00")),
         new Quantity(new BigDecimal("1")), PaymentMethod.CREDIT_CARD))
         .isInstanceOf(ProductOutOfStockException.class);
   }
@@ -77,18 +85,18 @@ class BuyNowServiceTest {
   @Test
   @DisplayName("Should throw IllegalArgumentException when quantity is zero")
   void shouldThrowWhenQuantityIsZero() {
-    var customerId = aCustomerId();
+    var customer = createExistedCustomer();
     var product = ProductTestDataBuilder.createProduct(new ProductName("Notebook Pro"), new Money("1000.00"), true)
         .build();
 
-    assertThatThrownBy(() -> buyNowService.buyNow(product, customerId, billingInfo(), shippingInfo(new Money("15.00")),
+    assertThatThrownBy(() -> buyNowService.buyNow(product, customer, billingInfo(), shippingInfo(new Money("15.00")),
         Quantity.ZERO, PaymentMethod.CREDIT_CARD))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("greater than zero");
   }
 
-  private CustomerId aCustomerId() {
-    return CustomerTestDataBuilder.existedCustomer().build().id();
+  private Customer createExistedCustomer() {
+    return CustomerTestDataBuilder.existedCustomer().build();
   }
 
   private Billing billingInfo() {

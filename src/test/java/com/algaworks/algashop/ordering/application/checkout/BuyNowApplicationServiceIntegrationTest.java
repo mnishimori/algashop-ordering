@@ -13,6 +13,7 @@ import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
 import com.algaworks.algashop.ordering.domain.model.commons.Money;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import com.algaworks.algashop.ordering.domain.model.order.shipping.OriginAddressService;
 import com.algaworks.algashop.ordering.domain.model.order.shipping.ShippingCostService;
 import com.algaworks.algashop.ordering.domain.model.order.shipping.ShippingCostService.CalculationResult;
@@ -35,6 +36,9 @@ class BuyNowApplicationServiceIntegrationTest {
 
   @Autowired
   private BuyNowApplicationService buyNowApplicationService;
+
+  @Autowired
+  private Customers customers;
 
   @MockitoBean
   private ProductCatalogService productCatalogService;
@@ -82,9 +86,11 @@ class BuyNowApplicationServiceIntegrationTest {
         .isInstanceOf(IllegalArgumentException.class);
   }
 
-  private static BuyNowInput aBuyNowInput() {
+  private BuyNowInput aBuyNowInput() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+    customers.add(customer);
     return BuyNowInput.builder()
-        .customerId(CustomerTestDataBuilder.existedCustomer().build().id().value())
+        .customerId(customer.id().value())
         .productId(PRODUCT_ID)
         .quantity(2)
         .paymentMethod("CREDIT_CARD")
