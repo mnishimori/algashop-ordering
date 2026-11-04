@@ -3,28 +3,23 @@ package com.algaworks.algashop.ordering.domain.model.order;
 import com.algaworks.algashop.ordering.domain.model.Specification;
 import com.algaworks.algashop.ordering.domain.model.customer.Customer;
 import com.algaworks.algashop.ordering.domain.model.customer.LoyaltyPoints;
-import java.time.Year;
 
 public class CustomerHaveFreeShippingSpecification implements Specification<Customer> {
 
-  private final int minPointsForFreeShippingRule1;
-  private final long salesQuantityForFreeShippingRule1;
-  private final int minPointsForFreeShippingRule2;
+  private final CustomerHasOrderedEnouthAtYearSpecification hasOrderedEnoughAtYear;
+  private final CustomerHasEnoughLoyaltyPointsSpecification hasEnoughBasicLoyaltyPoints;
+  private final CustomerHasEnoughLoyaltyPointsSpecification hasEnoughPremiumLoyaltyPoints;
 
-  private final Orders orders;
-
-  public CustomerHaveFreeShippingSpecification(Orders orders, int minPointsForFreeShippingRule1,
-      long salesQuantityForFreeShippingRule1, int minPointsForFreeShippingRule2) {
-    this.orders = orders;
-    this.minPointsForFreeShippingRule1 = minPointsForFreeShippingRule1;
-    this.salesQuantityForFreeShippingRule1 = salesQuantityForFreeShippingRule1;
-    this.minPointsForFreeShippingRule2 = minPointsForFreeShippingRule2;
+  public CustomerHaveFreeShippingSpecification(Orders orders, LoyaltyPoints basicLoyaltyPoints,
+      long salesQuantityForFreeShipping, LoyaltyPoints premiumLoyaltyPoints) {
+    this.hasEnoughBasicLoyaltyPoints = new CustomerHasEnoughLoyaltyPointsSpecification(basicLoyaltyPoints);
+    this.hasEnoughPremiumLoyaltyPoints = new CustomerHasEnoughLoyaltyPointsSpecification(premiumLoyaltyPoints);
+    this.hasOrderedEnoughAtYear = new CustomerHasOrderedEnouthAtYearSpecification(orders, salesQuantityForFreeShipping);
   }
 
   @Override
   public boolean isSatisfiedBy(Customer customer) {
-    return customer.loyaltyPoints().compareTo(new LoyaltyPoints(minPointsForFreeShippingRule1)) >= 0
-        && orders.salesQuantityByCustomerInYear(customer.id(), Year.now()) >= salesQuantityForFreeShippingRule1
-        || customer.loyaltyPoints().compareTo(new LoyaltyPoints(minPointsForFreeShippingRule2)) >= 0;
+    return hasEnoughBasicLoyaltyPoints.and(hasOrderedEnoughAtYear).or(hasEnoughPremiumLoyaltyPoints)
+        .isSatisfiedBy(customer);
   }
 }
