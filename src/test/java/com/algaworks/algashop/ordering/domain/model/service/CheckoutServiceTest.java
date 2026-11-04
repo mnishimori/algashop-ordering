@@ -7,33 +7,42 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.algaworks.algashop.ordering.domain.entity.CustomerTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.ProductTestDataBuilder;
 import com.algaworks.algashop.ordering.domain.entity.ShoppingCartTestDataBuilder;
-import com.algaworks.algashop.ordering.domain.model.order.CheckoutService;
-import com.algaworks.algashop.ordering.domain.model.order.OrderItem;
-import com.algaworks.algashop.ordering.domain.model.order.PaymentMethod;
-import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCart;
-import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBePlacedException;
-import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartCantProceedToCheckoutException;
 import com.algaworks.algashop.ordering.domain.model.commons.Address;
-import com.algaworks.algashop.ordering.domain.model.order.Billing;
 import com.algaworks.algashop.ordering.domain.model.commons.Document;
 import com.algaworks.algashop.ordering.domain.model.commons.Email;
 import com.algaworks.algashop.ordering.domain.model.commons.FullName;
 import com.algaworks.algashop.ordering.domain.model.commons.Money;
 import com.algaworks.algashop.ordering.domain.model.commons.Phone;
-import com.algaworks.algashop.ordering.domain.model.product.ProductName;
 import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
+import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.order.Billing;
+import com.algaworks.algashop.ordering.domain.model.order.CheckoutService;
+import com.algaworks.algashop.ordering.domain.model.order.CustomerHaveFreeShippingSpecification;
+import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBePlacedException;
+import com.algaworks.algashop.ordering.domain.model.order.OrderItem;
+import com.algaworks.algashop.ordering.domain.model.order.PaymentMethod;
 import com.algaworks.algashop.ordering.domain.model.order.Recipient;
 import com.algaworks.algashop.ordering.domain.model.order.Shipping;
-import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.product.ProductName;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCart;
+import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartCantProceedToCheckoutException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CheckoutServiceTest {
 
-  private final CheckoutService checkoutService = new CheckoutService();
+  @Mock
+  private CustomerHaveFreeShippingSpecification customerHaveFreeShippingSpecification;
+  @InjectMocks
+  private CheckoutService checkoutService;
 
   @Test
   @DisplayName("Should checkout a valid shopping cart and empty it afterwards")
@@ -42,8 +51,9 @@ class CheckoutServiceTest {
     var billing = billingInfo();
     var shipping = shippingInfo();
     var paymentMethod = PaymentMethod.CREDIT_CARD;
+    var customer = CustomerTestDataBuilder.existedCustomer().customerId(shoppingCart.customerId()).build();
 
-    var order = checkoutService.checkout(shoppingCart, billing, shipping, paymentMethod);
+    var order = checkoutService.checkout(customer, shoppingCart, billing, shipping, paymentMethod);
 
     assertThat(order).isNotNull();
     assertThat(order.customerId()).isEqualTo(shoppingCart.customerId());
@@ -71,9 +81,10 @@ class CheckoutServiceTest {
   void shouldNotCheckoutShoppingCartWithUnavailableItems() {
     var shoppingCart = shoppingCartWithUnavailableItem();
     var originalItems = new ArrayList<>(shoppingCart.items());
+    var customer = CustomerTestDataBuilder.existedCustomer().customerId(shoppingCart.customerId()).build();
 
     assertThatThrownBy(
-        () -> checkoutService.checkout(shoppingCart, billingInfo(), shippingInfo(), PaymentMethod.CREDIT_CARD))
+        () -> checkoutService.checkout(customer, shoppingCart, billingInfo(), shippingInfo(), PaymentMethod.CREDIT_CARD))
         .isInstanceOf(ShoppingCartCantProceedToCheckoutException.class)
         .hasMessage(SHOPPING_CART_CANT_PROCEED_TO_CHECKOUT);
 
@@ -85,9 +96,10 @@ class CheckoutServiceTest {
   @DisplayName("Should not checkout empty shopping cart")
   void shouldNotCheckoutEmptyShoppingCart() {
     var shoppingCart = emptyShoppingCart();
+    var customer = CustomerTestDataBuilder.existedCustomer().customerId(shoppingCart.customerId()).build();
 
     assertThatThrownBy(
-        () -> checkoutService.checkout(shoppingCart, billingInfo(), shippingInfo(), PaymentMethod.CREDIT_CARD))
+        () -> checkoutService.checkout(customer, shoppingCart, billingInfo(), shippingInfo(), PaymentMethod.CREDIT_CARD))
         .isInstanceOf(OrderCannotBePlacedException.class)
         .hasMessageContaining("Order").hasMessageContaining("cannot be placed, it has no items");
 

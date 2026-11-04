@@ -16,6 +16,8 @@ import com.algaworks.algashop.ordering.domain.model.commons.Address;
 import com.algaworks.algashop.ordering.domain.model.commons.Money;
 import com.algaworks.algashop.ordering.domain.model.commons.Quantity;
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerId;
+import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import com.algaworks.algashop.ordering.domain.model.order.Order;
 import com.algaworks.algashop.ordering.domain.model.order.OrderCannotBePlacedException;
 import com.algaworks.algashop.ordering.domain.model.order.OrderPlacedEvent;
@@ -43,6 +45,9 @@ class CheckoutApplicationServiceIntegrationTest {
 
   @Autowired
   private CheckoutApplicationService checkoutApplicationService;
+
+  @Autowired
+  private Customers customers;
 
   @MockitoBean
   private ShoppingCarts shoppingCarts;
@@ -128,7 +133,7 @@ class CheckoutApplicationServiceIntegrationTest {
   @Test
   void shouldFailToCheckoutWhenShoppingCartIsEmpty() {
     var shoppingCart = ShoppingCartTestDataBuilder.aShoppingCart()
-        .customerId(CustomerTestDataBuilder.existedCustomer().build().id())
+        .customerId(persistedCustomerId())
         .build();
     var input = aCheckoutInput(shoppingCart.id().value());
     when(shoppingCarts.findById(shoppingCart.id())).thenReturn(Optional.of(shoppingCart));
@@ -167,21 +172,27 @@ class CheckoutApplicationServiceIntegrationTest {
     verify(shoppingCarts, never()).add(any(ShoppingCart.class));
   }
 
-  private static ShoppingCart shoppingCartWithAvailableItems() {
+  private CustomerId persistedCustomerId() {
+    var customer = CustomerTestDataBuilder.existedCustomer().build();
+    customers.add(customer);
+    return customer.id();
+  }
+
+  private ShoppingCart shoppingCartWithAvailableItems() {
     var keyboard = ProductTestDataBuilder.createProduct(new ProductName("Keyboard"), new Money("20.00"), true).build();
     var mouse = ProductTestDataBuilder.createProduct(new ProductName("Mouse"), new Money("30.00"), true).build();
     var shoppingCart = ShoppingCartTestDataBuilder.aShoppingCart()
-        .customerId(CustomerTestDataBuilder.existedCustomer().build().id())
+        .customerId(persistedCustomerId())
         .build();
     shoppingCart.addItem(keyboard, new Quantity(BigDecimal.ONE));
     shoppingCart.addItem(mouse, new Quantity(BigDecimal.valueOf(2)));
     return shoppingCart;
   }
 
-  private static ShoppingCart shoppingCartWithUnavailableItem() {
+  private ShoppingCart shoppingCartWithUnavailableItem() {
     var productBuilder = ProductTestDataBuilder.createProduct(new ProductName("Monitor"), new Money("1000.00"), true);
     var shoppingCart = ShoppingCartTestDataBuilder.aShoppingCart()
-        .customerId(CustomerTestDataBuilder.existedCustomer().build().id())
+        .customerId(persistedCustomerId())
         .build();
     shoppingCart.addItem(productBuilder.build(), new Quantity(BigDecimal.ONE));
     shoppingCart.refreshItem(productBuilder.inStock(false).build());

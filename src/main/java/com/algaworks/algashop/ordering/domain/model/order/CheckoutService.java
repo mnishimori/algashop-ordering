@@ -2,16 +2,23 @@ package com.algaworks.algashop.ordering.domain.model.order;
 
 import static com.algaworks.algashop.ordering.domain.model.ErrorMessages.SHOPPING_CART_CANT_PROCEED_TO_CHECKOUT;
 
+import com.algaworks.algashop.ordering.domain.model.DomainService;
+import com.algaworks.algashop.ordering.domain.model.commons.Money;
+import com.algaworks.algashop.ordering.domain.model.customer.Customer;
+import com.algaworks.algashop.ordering.domain.model.product.Product;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCart;
 import com.algaworks.algashop.ordering.domain.model.shoppingcart.ShoppingCartCantProceedToCheckoutException;
-import com.algaworks.algashop.ordering.domain.model.DomainService;
-import com.algaworks.algashop.ordering.domain.model.product.Product;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class CheckoutService {
 
-  public Order checkout(ShoppingCart shoppingCart, Billing billing, Shipping shipping, PaymentMethod paymentMethod) {
+  private final CustomerHaveFreeShippingSpecification customerHaveFreeShippingSpecification;
+
+  public Order checkout(Customer customer, ShoppingCart shoppingCart, Billing billing, Shipping shipping,
+      PaymentMethod paymentMethod) {
     validateRequiredFields(shoppingCart, billing, shipping, paymentMethod);
     validateRequiredItems(shoppingCart);
 
@@ -24,6 +31,12 @@ public class CheckoutService {
           shoppingCartItem.available());
       order.addOrderItem(product, shoppingCartItem.quantity());
     });
+    if (haveFreeShipping(customer)) {
+      var freeShipping = shipping.toBuilder().shippingCost(Money.ZERO).build();
+      order.changeShipping(freeShipping);
+    } else {
+      order.changeShipping(shipping);
+    }
     order.place();
     shoppingCart.empty();
 
@@ -44,4 +57,7 @@ public class CheckoutService {
     Objects.requireNonNull(paymentMethod);
   }
 
+  private boolean haveFreeShipping(Customer customer) {
+    return customerHaveFreeShippingSpecification.isSatisfiedBy(customer);
+  }
 }

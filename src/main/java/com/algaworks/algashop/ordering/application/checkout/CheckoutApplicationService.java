@@ -1,6 +1,8 @@
 package com.algaworks.algashop.ordering.application.checkout;
 
 import com.algaworks.algashop.ordering.domain.model.commons.ZipCode;
+import com.algaworks.algashop.ordering.domain.model.customer.CustomerNotFoundException;
+import com.algaworks.algashop.ordering.domain.model.customer.Customers;
 import com.algaworks.algashop.ordering.domain.model.order.CheckoutService;
 import com.algaworks.algashop.ordering.domain.model.order.Orders;
 import com.algaworks.algashop.ordering.domain.model.order.PaymentMethod;
@@ -25,6 +27,7 @@ public class CheckoutApplicationService {
   private final BillingInputDisassembler billingInputDisassembler;
   private final ShippingInputDisassembler shippingInputDisassembler;
   private final Orders orders;
+  private final Customers customers;
 
   @Transactional
   public String checkout(CheckoutInput checkoutInput) {
@@ -32,6 +35,8 @@ public class CheckoutApplicationService {
     var shoppingCartId = new ShoppingCartId(checkoutInput.getShoppingCartId());
     var shoppingCart = shoppingCarts.findById(shoppingCartId)
         .orElseThrow(() -> new ShoppingCartNotFoundException(shoppingCartId));
+    var customer = customers.findById(shoppingCart.customerId())
+        .orElseThrow(() -> new CustomerNotFoundException(shoppingCart.customerId()));
     var paymentMethod = PaymentMethod.valueOf(checkoutInput.getPaymentMethod());
     var originZipCodeAddress = originAddressService.originAddress().zipCode();
     var destinationZipCodeAddress = new ZipCode(checkoutInput.getShipping().getAddress().getZipCode());
@@ -42,7 +47,7 @@ public class CheckoutApplicationService {
     var calculationResult = shippingCostService.calculate(calculationRequest);
     var billingData = billingInputDisassembler.toDomainModel(checkoutInput.getBilling());
     var shippingData = shippingInputDisassembler.toDomainModel(checkoutInput.getShipping(), calculationResult);
-    var order = checkoutService.checkout(shoppingCart, billingData, shippingData, paymentMethod);
+    var order = checkoutService.checkout(customer, shoppingCart, billingData, shippingData, paymentMethod);
     orders.add(order);
     shoppingCarts.add(shoppingCart);
     return order.id().toString();
