@@ -22,7 +22,7 @@ import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
-import com.algaworks.algashop.ordering.application.customer.management.CustomerQueryService;
+import com.algaworks.algashop.ordering.application.customer.query.CustomerQueryService;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService;
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService.NotifyNewRegistrationInput;

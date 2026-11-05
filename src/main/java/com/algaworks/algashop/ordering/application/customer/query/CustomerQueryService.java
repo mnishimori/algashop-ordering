@@ -1,4 +1,4 @@
-package com.algaworks.algashop.ordering.application.customer.management;
+package com.algaworks.algashop.ordering.application.customer.query;
 
 import java.util.UUID;
 

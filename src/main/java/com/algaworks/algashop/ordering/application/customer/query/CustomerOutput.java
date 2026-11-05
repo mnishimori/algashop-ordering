@@ -1,4 +1,4 @@
-package com.algaworks.algashop.ordering.application.customer.management;
+package com.algaworks.algashop.ordering.application.customer.query;
 
 import com.algaworks.algashop.ordering.application.commons.AddressData;
 import java.time.LocalDate;
@@ -19,12 +19,13 @@ public class CustomerOutput {
   private String firstName;
   private String lastName;
   private String email;
-  private String phone;
   private String document;
+  private String phone;
   private LocalDate birthDate;
-  private boolean promotionNotificationsAllowed;
   private Integer loyaltyPoints;
   private OffsetDateTime registeredAt;
+  private OffsetDateTime archivedAt;
+  private boolean promotionNotificationsAllowed;
   private boolean archived;
   private AddressData address;
 }
