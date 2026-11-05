@@ -22,6 +22,7 @@ import com.algaworks.algashop.ordering.IntegrationTest;
 import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerInput;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerManagementApplicationService;
+import com.algaworks.algashop.ordering.application.customer.management.CustomerQueryService;
 import com.algaworks.algashop.ordering.application.customer.management.CustomerUpdateInput;
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService;
 import com.algaworks.algashop.ordering.application.customer.notification.CustomerNotificationApplicationService.NotifyNewRegistrationInput;
@@ -43,6 +44,8 @@ class CustomerManagementApplicationServiceIntegrationTest {
 
   @Autowired
   private CustomerManagementApplicationService customerManagementApplicationService;
+  @Autowired
+  private CustomerQueryService customerQueryService;
   @Autowired
   private Customers customers;
   @MockitoSpyBean
@@ -86,7 +89,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
     var customer = CustomerTestDataBuilder.existedCustomer().build();
     customers.add(customer);
 
-    var customerOutput = customerManagementApplicationService.findById(customer.id().value());
+    var customerOutput = customerQueryService.findById(customer.id().value());
 
     assertThat(customerOutput.getId()).isEqualTo(customer.id().value());
     assertThat(customerOutput.getFirstName()).isEqualTo(customer.fullName().firstName());
@@ -110,7 +113,7 @@ class CustomerManagementApplicationServiceIntegrationTest {
 
   @Test
   void shouldThrowExceptionWhenCustomerIsNotFound() {
-    assertThatThrownBy(() -> customerManagementApplicationService.findById(UUID.randomUUID()))
+    assertThatThrownBy(() -> customerQueryService.findById(UUID.randomUUID()))
         .isInstanceOf(CustomerNotFoundException.class);
   }
 
