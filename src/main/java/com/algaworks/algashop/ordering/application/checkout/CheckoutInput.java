@@ -1,5 +1,6 @@
 package com.algaworks.algashop.ordering.application.checkout;
 
+import com.algaworks.algashop.ordering.application.order.query.BillingData;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

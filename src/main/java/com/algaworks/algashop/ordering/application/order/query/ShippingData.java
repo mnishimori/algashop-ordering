@@ -1,6 +1,5 @@
 package com.algaworks.algashop.ordering.application.order.query;
 
-import com.algaworks.algashop.ordering.application.checkout.RecipientData;
 import com.algaworks.algashop.ordering.application.commons.AddressData;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,8 +19,6 @@ public class ShippingData {
   private RecipientData recipient;
   private AddressData address;
 }
-
-
 
 
 
