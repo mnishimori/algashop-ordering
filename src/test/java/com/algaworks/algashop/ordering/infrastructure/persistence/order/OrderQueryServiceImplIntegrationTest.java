@@ -4,20 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.algaworks.algashop.ordering.IntegrationTest;
-import com.algaworks.algashop.ordering.application.order.query.OrderQueryService;
+import com.algaworks.algashop.ordering.application.order.query.OrderFilter;
 import com.algaworks.algashop.ordering.application.order.query.OrderItemDetailOutput;
-import com.algaworks.algashop.ordering.domain.model.IdGenerator;
+import com.algaworks.algashop.ordering.application.order.query.OrderQueryService;
 import com.algaworks.algashop.ordering.application.order.query.OrderSummaryOutput;
-import com.algaworks.algashop.ordering.application.utility.PageFilter;
+import com.algaworks.algashop.ordering.domain.model.IdGenerator;
 import com.algaworks.algashop.ordering.domain.model.order.OrderNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.stream.IntStream;
-import org.springframework.data.domain.Page;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 
 @IntegrationTest
 class OrderQueryServiceImplIntegrationTest {
@@ -112,7 +113,8 @@ class OrderQueryServiceImplIntegrationTest {
 
     repository.saveAndFlush(order);
 
-    var output = orderQueryService.findById(new com.algaworks.algashop.ordering.domain.model.order.OrderId(orderId).toString());
+    var output = orderQueryService.findById(
+        new com.algaworks.algashop.ordering.domain.model.order.OrderId(orderId).toString());
 
     assertThat(output.getId()).isEqualTo(String.valueOf(orderId));
     assertThat(output.getCustomer()).isNotNull();
@@ -180,7 +182,7 @@ class OrderQueryServiceImplIntegrationTest {
     repository.deleteAll();
     repository.flush();
 
-    Page<OrderSummaryOutput> page = orderQueryService.filter(new PageFilter(10, 0));
+    Page<OrderSummaryOutput> page = orderQueryService.filter(new OrderFilter(10, 0));
 
     assertThat(page.getContent()).isEmpty();
     assertThat(page.getTotalElements()).isZero();
@@ -195,11 +197,11 @@ class OrderQueryServiceImplIntegrationTest {
     var customerId = UUID.randomUUID();
     var orderId = saveOrder(customerId, 3, "PLACED");
 
-    Page<OrderSummaryOutput> page = orderQueryService.filter(new PageFilter(10, 0));
+    Page<OrderSummaryOutput> page = orderQueryService.filter(new OrderFilter(10, 0));
 
     assertThat(page.getTotalElements()).isEqualTo(1);
     assertThat(page.getContent()).hasSize(1);
-    var summary = page.getContent().get(0);
+    var summary = page.getContent().getFirst();
     assertThat(summary.getId())
         .isEqualTo(new com.algaworks.algashop.ordering.domain.model.order.OrderId(orderId).toString());
     assertThat(summary.getCustomer().getId()).isEqualTo(customerId);
@@ -217,8 +219,8 @@ class OrderQueryServiceImplIntegrationTest {
     repository.flush();
     IntStream.range(0, 5).forEach(i -> saveOrder(UUID.randomUUID(), i + 1, "PLACED"));
 
-    Page<OrderSummaryOutput> firstPage = orderQueryService.filter(new PageFilter(2, 0));
-    Page<OrderSummaryOutput> lastPage = orderQueryService.filter(new PageFilter(2, 2));
+    Page<OrderSummaryOutput> firstPage = orderQueryService.filter(new OrderFilter(2, 0));
+    Page<OrderSummaryOutput> lastPage = orderQueryService.filter(new OrderFilter(2, 2));
 
     assertThat(firstPage.getTotalElements()).isEqualTo(5);
     assertThat(firstPage.getTotalPages()).isEqualTo(3);
@@ -233,7 +235,7 @@ class OrderQueryServiceImplIntegrationTest {
     repository.flush();
     saveOrder(UUID.randomUUID(), 1, "PLACED");
 
-    Page<OrderSummaryOutput> page = orderQueryService.filter(new PageFilter(10, 5));
+    Page<OrderSummaryOutput> page = orderQueryService.filter(new OrderFilter(10, 5));
 
     assertThat(page.getContent()).isEmpty();
     assertThat(page.getTotalElements()).isEqualTo(1);
@@ -243,13 +245,13 @@ class OrderQueryServiceImplIntegrationTest {
   void shouldFailToFilterWhenPageSizeIsZero() {
     saveOrder(UUID.randomUUID(), 1, "PLACED");
 
-    assertThatThrownBy(() -> orderQueryService.filter(new PageFilter(0, 0)))
+    assertThatThrownBy(() -> orderQueryService.filter(new OrderFilter(0, 0)))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void shouldFailToFilterWhenPageSizeIsNegative() {
-    assertThatThrownBy(() -> orderQueryService.filter(new PageFilter(-1, 0)))
+    assertThatThrownBy(() -> orderQueryService.filter(new OrderFilter(-1, 0)))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -257,11 +259,304 @@ class OrderQueryServiceImplIntegrationTest {
   void shouldFailToFilterWhenPageIndexIsNegative() {
     saveOrder(UUID.randomUUID(), 1, "PLACED");
 
-    assertThatThrownBy(() -> orderQueryService.filter(new PageFilter(10, -1)))
+    assertThatThrownBy(() -> orderQueryService.filter(new OrderFilter(10, -1)))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
+  @Test
+  void shouldFilterByCustomerId() {
+    repository.deleteAll();
+    repository.flush();
+    var customerId = UUID.randomUUID();
+    saveOrder(customerId, 1, "PLACED");
+    saveOrder(UUID.randomUUID(), 1, "PLACED");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setCustomerId(customerId);
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getCustomer().getId()).isEqualTo(customerId);
+  }
+
+  @Test
+  void shouldFilterByOrderId() {
+    repository.deleteAll();
+    repository.flush();
+    var orderId = saveOrder(UUID.randomUUID(), 1, "PLACED");
+    saveOrder(UUID.randomUUID(), 1, "PLACED");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setOrderId(new com.algaworks.algashop.ordering.domain.model.order.OrderId(orderId).toString());
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getId())
+        .isEqualTo(new com.algaworks.algashop.ordering.domain.model.order.OrderId(orderId).toString());
+  }
+
+  @Test
+  void shouldFilterByStatusIgnoringCase() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED");
+    saveOrder(UUID.randomUUID(), 1, "PAID");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setStatus("paid");
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getStatus()).isEqualTo("PAID");
+  }
+
+  @Test
+  void shouldIgnoreBlankStatus() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED");
+    saveOrder(UUID.randomUUID(), 1, "PAID");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setStatus(" ");
+
+    assertThat(orderQueryService.filter(filter).getTotalElements()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldFilterByPlacedAtRange() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("10.00"),
+        OffsetDateTime.parse("2026-01-10T10:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("10.00"),
+        OffsetDateTime.parse("2026-02-10T10:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("10.00"),
+        OffsetDateTime.parse("2026-03-10T10:00:00-03:00"));
+
+    var filter = new OrderFilter(10, 0);
+    filter.setPlacedAtFrom(OffsetDateTime.parse("2026-02-01T00:00:00-03:00"));
+    filter.setPlacedAtTo(OffsetDateTime.parse("2026-02-28T23:59:59-03:00"));
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getPlacedAt().toInstant())
+        .isEqualTo(OffsetDateTime.parse("2026-02-10T10:00:00-03:00").toInstant());
+  }
+
+  @Test
+  void shouldFilterByPlacedAtFromOnly() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("10.00"),
+        OffsetDateTime.parse("2026-01-10T10:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("10.00"),
+        OffsetDateTime.parse("2026-03-10T10:00:00-03:00"));
+
+    var filter = new OrderFilter(10, 0);
+    filter.setPlacedAtFrom(OffsetDateTime.parse("2026-02-01T00:00:00-03:00"));
+
+    assertThat(orderQueryService.filter(filter).getTotalElements()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldFilterByTotalAmountRange() {
+    repository.deleteAll();
+    repository.flush();
+    var placedAt = OffsetDateTime.parse("2026-11-12T08:00:00-03:00");
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("50.00"), placedAt);
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("150.00"), placedAt);
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("300.00"), placedAt);
+
+    var filter = new OrderFilter(10, 0);
+    filter.setTotalAmountFrom(new BigDecimal("100.00"));
+    filter.setTotalAmountTo(new BigDecimal("200.00"));
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getTotalAmount()).isEqualByComparingTo("150.00");
+  }
+
+  @Test
+  void shouldFilterByTotalAmountFromOnly() {
+    repository.deleteAll();
+    repository.flush();
+    var placedAt = OffsetDateTime.parse("2026-11-12T08:00:00-03:00");
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("50.00"), placedAt);
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("150.00"), placedAt);
+
+    var filter = new OrderFilter(10, 0);
+    filter.setTotalAmountFrom(new BigDecimal("150.00"));
+
+    assertThat(orderQueryService.filter(filter).getTotalElements()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldCombineFiltersAndReturnEmptyWhenNothingMatches() {
+    repository.deleteAll();
+    repository.flush();
+    var customerId = UUID.randomUUID();
+    saveOrder(customerId, 1, "PLACED");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setCustomerId(customerId);
+    filter.setStatus("PAID");
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getContent()).isEmpty();
+    assertThat(page.getTotalElements()).isZero();
+  }
+
+  @Test
+  void shouldFilterByPlacedAtToOnly() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("50.00"),
+        OffsetDateTime.parse("2026-01-10T10:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("50.00"),
+        OffsetDateTime.parse("2026-03-10T10:00:00-03:00"));
+
+    var filter = new OrderFilter(10, 0);
+    filter.setPlacedAtTo(OffsetDateTime.parse("2026-01-10T10:00:00-03:00"));
+
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().getFirst().getPlacedAt())
+        .isEqualTo(OffsetDateTime.parse("2026-01-10T10:00:00-03:00"));
+  }
+
+  @Test
+  void shouldFilterByTotalAmountToOnly() {
+    repository.deleteAll();
+    repository.flush();
+    var placedAt = OffsetDateTime.parse("2026-11-12T08:00:00-03:00");
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("50.00"), placedAt);
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("100.00"), placedAt);
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("150.00"), placedAt);
+
+    var filter = new OrderFilter(10, 0);
+    filter.setTotalAmountTo(new BigDecimal("100.00"));
+
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent()).extracting(OrderSummaryOutput::getTotalAmount)
+        .containsExactly(new BigDecimal("50.00"), new BigDecimal("100.00"));
+  }
+
+  @Test
+  void shouldIncludeBoundaryValuesInRangeFilters() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("100.00"),
+        OffsetDateTime.parse("2026-02-01T00:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("150.00"),
+        OffsetDateTime.parse("2026-02-15T10:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("200.00"),
+        OffsetDateTime.parse("2026-02-28T23:59:59-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("250.00"),
+        OffsetDateTime.parse("2026-03-01T00:00:00-03:00"));
+
+    var filter = new OrderFilter(10, 0);
+    filter.setPlacedAtFrom(OffsetDateTime.parse("2026-02-01T00:00:00-03:00"));
+    filter.setPlacedAtTo(OffsetDateTime.parse("2026-02-28T23:59:59-03:00"));
+    filter.setTotalAmountFrom(new BigDecimal("100.00"));
+    filter.setTotalAmountTo(new BigDecimal("200.00"));
+
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getTotalElements()).isEqualTo(3);
+    assertThat(page.getContent()).extracting(OrderSummaryOutput::getTotalAmount)
+        .containsExactly(new BigDecimal("100.00"), new BigDecimal("150.00"), new BigDecimal("200.00"));
+    assertThat(page.getContent()).extracting(OrderSummaryOutput::getPlacedAt)
+        .containsExactly(
+            OffsetDateTime.parse("2026-02-01T00:00:00-03:00"),
+            OffsetDateTime.parse("2026-02-15T10:00:00-03:00"),
+            OffsetDateTime.parse("2026-02-28T23:59:59-03:00"));
+  }
+
+  @Test
+  void shouldFailToFilterWhenOrderIdIsInvalid() {
+    var filter = new OrderFilter(10, 0);
+    filter.setOrderId("invalid-order-id");
+
+    assertThatThrownBy(() -> orderQueryService.filter(filter))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void shouldReturnEmptyPageWhenOrderIdDoesNotExist() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PLACED");
+
+    var filter = new OrderFilter(10, 0);
+    filter.setOrderId(new com.algaworks.algashop.ordering.domain.model.order.OrderId(
+        IdGenerator.generateTSID().toLong()).toString());
+
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getContent()).isEmpty();
+    assertThat(page.getTotalElements()).isZero();
+  }
+
+  @Test
+  void shouldFilterAndCountOnlyMatchingResultsWhenPaginating() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PAID");
+    saveOrder(UUID.randomUUID(), 2, "PAID");
+    saveOrder(UUID.randomUUID(), 3, "PAID");
+    saveOrder(UUID.randomUUID(), 4, "CANCELED");
+    saveOrder(UUID.randomUUID(), 5, "PLACED");
+
+    var filter = new OrderFilter(2, 0);
+    filter.setStatus("PAID");
+
+    var firstPage = orderQueryService.filter(filter);
+
+    filter.setPage(1);
+    var secondPage = orderQueryService.filter(filter);
+
+    assertThat(firstPage.getTotalElements()).isEqualTo(3);
+    assertThat(firstPage.getTotalPages()).isEqualTo(2);
+    assertThat(firstPage.getContent()).hasSize(2);
+    assertThat(secondPage.getContent()).hasSize(1);
+    assertThat(secondPage.getTotalElements()).isEqualTo(3);
+  }
+
+  @Test
+  void shouldSortResultsByRequestedPropertyAndDirection() {
+    repository.deleteAll();
+    repository.flush();
+    saveOrder(UUID.randomUUID(), 1, "PAID", new BigDecimal("100.00"),
+        OffsetDateTime.parse("2026-11-10T08:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "CANCELED", new BigDecimal("100.00"),
+        OffsetDateTime.parse("2026-11-11T08:00:00-03:00"));
+    saveOrder(UUID.randomUUID(), 1, "PLACED", new BigDecimal("100.00"),
+        OffsetDateTime.parse("2026-11-12T08:00:00-03:00"));
+
+    var filter = new OrderFilter(10, 0);
+    filter.setSortByProperty(OrderFilter.SortType.PLACED_AT);
+    filter.setSortDirection(Sort.Direction.DESC);
+
+    var page = orderQueryService.filter(filter);
+
+    assertThat(page.getContent()).hasSize(3);
+    assertThat(page.getContent().get(0).getPlacedAt())
+        .isAfter(page.getContent().get(1).getPlacedAt());
+    assertThat(page.getContent().get(1).getPlacedAt())
+        .isAfter(page.getContent().get(2).getPlacedAt());
+  }
+
   private Long saveOrder(UUID customerId, int totalItems, String status) {
+    return saveOrder(customerId, totalItems, status, new BigDecimal("100.00"),
+        OffsetDateTime.parse("2026-11-12T08:00:00-03:00"));
+  }
+
+  private Long saveOrder(UUID customerId, int totalItems, String status, BigDecimal totalAmount,
+      OffsetDateTime placedAt) {
     var orderId = IdGenerator.generateTSID().toLong();
 
     var customer = new com.algaworks.algashop.ordering.infrastructure.persistence.customer.CustomerPersistenceEntity();
@@ -285,10 +580,10 @@ class OrderQueryServiceImplIntegrationTest {
         .id(orderId)
         .customer(customer)
         .totalItems(totalItems)
-        .totalAmount(new BigDecimal("100.00"))
+        .totalAmount(totalAmount)
         .status(status)
         .paymentMethod("CREDIT_CARD")
-        .placedAt(OffsetDateTime.parse("2026-11-12T08:00:00-03:00"))
+        .placedAt(placedAt)
         .billingEmbeddable(billing)
         .shippingEmbeddable(shipping)
         .items(java.util.Set.of())

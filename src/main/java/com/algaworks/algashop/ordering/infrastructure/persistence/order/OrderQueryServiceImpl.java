@@ -4,27 +4,28 @@ import com.algaworks.algashop.ordering.application.commons.AddressData;
 import com.algaworks.algashop.ordering.application.order.query.BillingData;
 import com.algaworks.algashop.ordering.application.order.query.CustomerMinimalOutput;
 import com.algaworks.algashop.ordering.application.order.query.OrderDetailOutput;
+import com.algaworks.algashop.ordering.application.order.query.OrderFilter;
 import com.algaworks.algashop.ordering.application.order.query.OrderItemDetailOutput;
 import com.algaworks.algashop.ordering.application.order.query.OrderQueryService;
 import com.algaworks.algashop.ordering.application.order.query.OrderSummaryOutput;
 import com.algaworks.algashop.ordering.application.order.query.RecipientData;
 import com.algaworks.algashop.ordering.application.order.query.ShippingData;
-import com.algaworks.algashop.ordering.application.utility.PageFilter;
 import com.algaworks.algashop.ordering.domain.model.order.OrderId;
 import com.algaworks.algashop.ordering.domain.model.order.OrderNotFoundException;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Expression;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -144,31 +145,34 @@ public class OrderQueryServiceImpl implements OrderQueryService {
   }
 
   @Override
-  public Page<OrderSummaryOutput> filter(PageFilter filter) {
+  public Page<OrderSummaryOutput> filter(OrderFilter filter) {
+    var pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
     var totalQueryResults = countTotalQueryResults(filter);
 
     if (totalQueryResults.equals(0L)) {
-      var pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
       return new PageImpl<>(new ArrayList<>(), pageRequest, totalQueryResults);
     }
 
     return filterQuery(filter, totalQueryResults);
   }
 
-  private Long countTotalQueryResults(PageFilter filter) {
+  private Long countTotalQueryResults(OrderFilter filter) {
     var builder = entityManager.getCriteriaBuilder();
     var criteriaQuery = builder.createQuery(Long.class);
     var root = criteriaQuery.from(OrderPersistenceEntity.class);
+    var predicates = toPredicates(builder, root, filter);
+    criteriaQuery.where(predicates);
     var count = builder.count(root);
     criteriaQuery.select(count);
     var query = entityManager.createQuery(criteriaQuery);
     return query.getSingleResult();
   }
 
-  private Page<OrderSummaryOutput> filterQuery(PageFilter filter, Long totalQueryResults) {
+  private Page<OrderSummaryOutput> filterQuery(OrderFilter filter, Long totalQueryResults) {
     var builder = entityManager.getCriteriaBuilder();
     var criteriaQuery = builder.createQuery(OrderSummaryOutput.class);
     var root = criteriaQuery.from(OrderPersistenceEntity.class);
+    var predicates = toPredicates(builder, root, filter);
     var customer = root.get("customer");
 
     criteriaQuery.select(
@@ -192,11 +196,53 @@ public class OrderQueryServiceImpl implements OrderQueryService {
             root.get("paymentMethod")
         )
     );
+    criteriaQuery.where(predicates);
+    var sortExpression = sortExpression(root, filter);
+    criteriaQuery.orderBy(filter.getSortDirectionOrDefault() == Sort.Direction.DESC
+        ? builder.desc(sortExpression)
+        : builder.asc(sortExpression));
 
     var typedQuery = entityManager.createQuery(criteriaQuery);
     typedQuery.setFirstResult(filter.getSize() * filter.getPage());
     typedQuery.setMaxResults(filter.getSize());
     var pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
     return new PageImpl<>(typedQuery.getResultList(), pageRequest, totalQueryResults);
+  }
+
+  private Predicate[] toPredicates(CriteriaBuilder builder, Root<OrderPersistenceEntity> root,
+      OrderFilter orderFilter) {
+    var predicates = new ArrayList<Predicate>();
+    if (orderFilter.getCustomerId() != null) {
+      predicates.add(builder.equal(root.get("customer").get("id"), orderFilter.getCustomerId()));
+    }
+    if (orderFilter.getOrderId() != null) {
+      predicates.add(builder.equal(root.get("id"), new OrderId(orderFilter.getOrderId()).value().toLong()));
+    }
+    if (orderFilter.getStatus() != null && !orderFilter.getStatus().isBlank()) {
+      predicates.add(builder.equal(root.get("status"), orderFilter.getStatus().toUpperCase()));
+    }
+    if (orderFilter.getPlacedAtFrom() != null) {
+      predicates.add(builder.greaterThanOrEqualTo(root.<OffsetDateTime>get("placedAt"), orderFilter.getPlacedAtFrom()));
+    }
+    if (orderFilter.getPlacedAtTo() != null) {
+      predicates.add(builder.lessThanOrEqualTo(root.<OffsetDateTime>get("placedAt"), orderFilter.getPlacedAtTo()));
+    }
+    if (orderFilter.getTotalAmountFrom() != null) {
+      predicates.add(builder.greaterThanOrEqualTo(root.<BigDecimal>get("totalAmount"), orderFilter.getTotalAmountFrom()));
+    }
+    if (orderFilter.getTotalAmountTo() != null) {
+      predicates.add(builder.lessThanOrEqualTo(root.<BigDecimal>get("totalAmount"), orderFilter.getTotalAmountTo()));
+    }
+
+    return predicates.toArray(new Predicate[]{});
+  }
+
+  private Expression<?> sortExpression(Root<OrderPersistenceEntity> root, OrderFilter filter) {
+    return switch (filter.getSortByPropertyOrDefault()) {
+      case PLACED_AT -> root.get("placedAt").as(OffsetDateTime.class);
+      case PAID_AT -> root.get("paidAt").as(OffsetDateTime.class);
+      case CANCELED_AT -> root.get("canceledAt").as(OffsetDateTime.class);
+      case STATUS -> root.get("status").as(String.class);
+    };
   }
 }
